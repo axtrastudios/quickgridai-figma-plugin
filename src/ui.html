@@ -1,0 +1,425 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Frame Exporter</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeInDown 0.6s ease;
+    }
+
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .header-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: white;
+    }
+
+    h3 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 4px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 400;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+      animation: fadeInUp 0.6s ease;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 2px;
+    }
+
+    .option-row {
+      margin: 10px 0;
+      padding: 12px;
+      background: #f8f9fb;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+    }
+
+    .option-row:hover {
+      background: #f0f2f8;
+      border-color: #667eea33;
+      transform: translateX(2px);
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      color: #2d3748;
+      font-weight: 500;
+      font-size: 13px;
+      gap: 10px;
+    }
+
+    /* Custom Checkbox */
+    input[type="checkbox"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #cbd5e0;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      background: white;
+    }
+
+    input[type="checkbox"]:hover {
+      border-color: #667eea;
+      transform: scale(1.05);
+    }
+
+    input[type="checkbox"]:checked {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: #667eea;
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f8f9fb;
+      border-radius: 10px;
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .scale-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    select {
+      padding: 8px 12px;
+      border: 2px solid #e2e8f0;
+      background: white;
+      color: #2d3748;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    select:hover {
+      border-color: #667eea;
+    }
+
+    select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    button::before {
+      content: '📦';
+      font-size: 18px;
+    }
+
+    #status {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      font-size: 12px;
+      min-height: 20px;
+      color: #4a5568;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #status:not(:empty) {
+      display: flex;
+    }
+
+    #status::before {
+      content: '⚡';
+      font-size: 16px;
+    }
+
+    .progress-container {
+      margin-top: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffd89b 0%, #19547b 100%);
+      transition: width 0.4s ease;
+      width: 0%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 216, 155, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 320px) {
+      .container {
+        padding: 16px;
+      }
+      
+      .card {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-7-2l-4-5h3V7h2v5h3l-4 5z"/>
+        </svg>
+      </div>
+      <h3>Frame Exporter</h3>
+      <div class="subtitle">Export your Figma frames with ease</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Export Options</div>
+      
+      <div class="option-row">
+        <label>
+          <input id="includeHidden" type="checkbox">
+          <span>Include hidden layers</span>
+        </label>
+      </div>
+
+      <div class="option-row">
+        <label>
+          <input id="embedImages" type="checkbox">
+          <span>Embed images as Base64</span>
+        </label>
+      </div>
+
+      <div class="option-row">
+        <label>
+          <input id="exportPreview" type="checkbox" checked>
+          <span>Export frame previews (PNG)</span>
+        </label>
+      </div>
+
+      <div class="scale-row">
+        <div class="scale-label">
+          <span>📐</span>
+          <span>Export Scale</span>
+        </div>
+        <select id="exportScale">
+          <option value="1">1x</option>
+          <option value="2" selected>2x</option>
+          <option value="3">3x</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="exportBtn">Export to ZIP</button>
+    
+    <div id="status"></div>
+    
+    <div class="progress-container" id="progressBar" style="display: none;">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ui.js"></script>
+</body>
+</html>
+

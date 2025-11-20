@@ -1,0 +1,8 @@
+{
+  "name": "Frame Exporter",
+  "id": "REPLACE_WITH_GENERATED_ID",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "editorType": ["figma"]
+}
+
