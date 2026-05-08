@@ -69,10 +69,85 @@
 	var jszip_minExports = requireJszip_min();
 	var JSZip = /*@__PURE__*/getDefaultExportFromCjs(jszip_minExports);
 
-	function serializeNode(node, options, imageMap) {
+	function paintToFillExport(p, imageMap) {
+	    if (!p)
+	        return null;
+	    if (p.type === 'SOLID') {
+	        return {
+	            type: 'SOLID',
+	            color: {
+	                r: p.color.r,
+	                g: p.color.g,
+	                b: p.color.b,
+	                a: p.opacity !== undefined ? p.opacity : 1
+	            }
+	        };
+	    }
+	    if (p.type === 'IMAGE') {
+	        const mapped = imageMap === null || imageMap === void 0 ? void 0 : imageMap.get(p.imageHash);
+	        return {
+	            type: 'IMAGE',
+	            imageHash: p.imageHash,
+	            file: mapped !== null && mapped !== void 0 ? mapped : undefined,
+	            scaleMode: p.scaleMode
+	        };
+	    }
+	    if (p.type === 'GRADIENT_LINEAR' ||
+	        p.type === 'GRADIENT_RADIAL' ||
+	        p.type === 'GRADIENT_ANGULAR' ||
+	        p.type === 'GRADIENT_DIAMOND') {
+	        return {
+	            type: 'GRADIENT',
+	            gradient: {
+	                type: p.type,
+	                gradientStops: p.gradientStops,
+	                gradientTransform: p.gradientTransform
+	            }
+	        };
+	    }
+	    return { type: p.type, raw: p };
+	}
+	function fillsKey(fills) {
+	    return JSON.stringify(fills);
+	}
+	function serializeNode(node, options, imageMap, svgMap) {
 	    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 	    if (!node.visible && !options.includeHidden)
 	        return null;
+	    // SVG short-circuit: pattern nodes are flattened into a single synthetic IMAGE fill
+	    // and their children are dropped (the SVG is exported separately by the main thread).
+	    if (svgMap && svgMap.has(node.id)) {
+	        const entry = svgMap.get(node.id);
+	        const out = {
+	            id: node.id,
+	            name: node.name,
+	            type: node.type,
+	            visible: node.visible
+	        };
+	        if ('x' in node) {
+	            out.x = node.x;
+	            out.y = node.y;
+	        }
+	        if ('width' in node) {
+	            out.width = node.width;
+	            out.height = node.height;
+	        }
+	        if ('rotation' in node)
+	            out.rotation = node.rotation;
+	        if ('opacity' in node)
+	            out.opacity = node.opacity;
+	        if ('blendMode' in node)
+	            out.blendMode = node.blendMode;
+	        out.fills = [
+	            {
+	                type: 'IMAGE',
+	                imageHash: `svg_export_${node.id}`,
+	                file: entry.fileName,
+	                scaleMode: 'FILL'
+	            }
+	        ];
+	        return out;
+	    }
 	    const base = {
 	        id: node.id,
 	        name: node.name,
@@ -136,57 +211,23 @@
 	            }
 	        };
 	    }
-	    // Fills (including images)
+	    // Fills (including images). When fills are figma.mixed (e.g. on text nodes with
+	    // per-character colors) the getter throws and we intentionally omit the `fills` key,
+	    // matching the ideal Health1 output for split-color titles.
 	    if ('fills' in node) {
 	        try {
 	            const fills = node.fills;
 	            if (fills && Array.isArray(fills) && fills.length > 0) {
 	                base.fills = fills
 	                    .filter((f) => f && f.visible !== false)
-	                    .map((f) => {
-	                    if (f.type === 'SOLID') {
-	                        return {
-	                            type: 'SOLID',
-	                            color: {
-	                                r: f.color.r,
-	                                g: f.color.g,
-	                                b: f.color.b,
-	                                a: f.opacity !== undefined ? f.opacity : 1
-	                            }
-	                        };
-	                    }
-	                    if (f.type === 'IMAGE') {
-	                        // Register image hash for extraction
-	                        const mapped = imageMap.get(f.imageHash);
-	                        const fillExport = {
-	                            type: 'IMAGE',
-	                            imageHash: f.imageHash,
-	                            file: mapped !== null && mapped !== void 0 ? mapped : undefined,
-	                            scaleMode: f.scaleMode
-	                        };
-	                        // dataUri will be set later during image extraction if embedImages is enabled
-	                        return fillExport;
-	                    }
-	                    if (f.type === 'GRADIENT_LINEAR' || f.type === 'GRADIENT_RADIAL' || f.type === 'GRADIENT_ANGULAR' || f.type === 'GRADIENT_DIAMOND') {
-	                        return {
-	                            type: 'GRADIENT',
-	                            gradient: {
-	                                type: f.type,
-	                                gradientStops: f.gradientStops,
-	                                gradientTransform: f.gradientTransform
-	                            }
-	                        };
-	                    }
-	                    // Fallback for other fill types
-	                    return { type: f.type, raw: f };
-	                });
+	                    .map((f) => paintToFillExport(f, imageMap));
 	            }
 	        }
 	        catch (e) {
-	            // Benign: fonts or mixed properties might throw
+	            // Mixed fills: leave `fills` unset on purpose.
 	        }
 	    }
-	    // Strokes
+	    // Strokes — always emit when the node supports strokes, even if empty.
 	    if ('strokes' in node) {
 	        try {
 	            const strokes = node.strokes;
@@ -209,13 +250,12 @@
 	                    return { type: s.type, raw: s };
 	                });
 	            }
-	            if ('strokeWeight' in node && node.strokeWeight) {
-	                if (!base.strokes)
-	                    base.strokes = [];
+	            else {
+	                base.strokes = [];
 	            }
 	        }
 	        catch (e) {
-	            // Benign error handling
+	            base.strokes = [];
 	        }
 	    }
 	    // Effects (shadows, blurs)
@@ -247,6 +287,82 @@
 	            }
 	            catch (e) {
 	                base.textStyle.fontName = 'mixed-or-unloaded';
+	            }
+	            try {
+	                if (tn.textCase !== figma.mixed) {
+	                    base.textStyle.textCase = tn.textCase;
+	                }
+	            }
+	            catch (e) {
+	                // ignore
+	            }
+	            // Per-character style overrides (matches Figma REST: characterStyleOverrides + styleOverrideTable)
+	            try {
+	                const segments = tn.getStyledTextSegments
+	                    ? tn.getStyledTextSegments(['fills'])
+	                    : [];
+	                const charLen = tn.characters.length;
+	                const overrides = new Array(charLen).fill(0);
+	                const overrideTable = {};
+	                let baseFillsKey = null;
+	                try {
+	                    const baseFillsRaw = tn.fills;
+	                    if (baseFillsRaw && baseFillsRaw !== figma.mixed && Array.isArray(baseFillsRaw)) {
+	                        const baseFillsExp = baseFillsRaw
+	                            .filter((f) => f && f.visible !== false)
+	                            .map((f) => paintToFillExport(f, imageMap));
+	                        baseFillsKey = fillsKey(baseFillsExp);
+	                    }
+	                }
+	                catch (e) {
+	                    // mixed fills: there is no single base style; every segment becomes an override
+	                }
+	                const keyToId = new Map();
+	                let nextId = 1;
+	                for (const seg of segments) {
+	                    const segFillsExp = (seg.fills || [])
+	                        .filter((f) => f && f.visible !== false)
+	                        .map((f) => paintToFillExport(f, imageMap));
+	                    const segKey = fillsKey(segFillsExp);
+	                    let id = 0;
+	                    if (baseFillsKey !== null && segKey === baseFillsKey) {
+	                        id = 0;
+	                    }
+	                    else {
+	                        if (!keyToId.has(segKey)) {
+	                            keyToId.set(segKey, nextId);
+	                            overrideTable[String(nextId)] = { fills: segFillsExp };
+	                            nextId++;
+	                        }
+	                        id = keyToId.get(segKey);
+	                    }
+	                    for (let i = seg.start; i < seg.end && i < charLen; i++) {
+	                        overrides[i] = id;
+	                    }
+	                }
+	                if (charLen > 0 && segments.length > 0) {
+	                    base.characterStyleOverrides = overrides;
+	                }
+	                if (Object.keys(overrideTable).length > 0) {
+	                    base.styleOverrideTable = overrideTable;
+	                }
+	            }
+	            catch (e) {
+	                // segments not available — skip overrides quietly
+	            }
+	            // figmaWidth: rendered text width (longest line for wrapped text), independent
+	            // of the layout box width imposed by the parent.
+	            try {
+	                const rb = node.absoluteRenderBounds;
+	                if (rb && typeof rb.width === 'number') {
+	                    base.figmaWidth = Math.round(rb.width);
+	                }
+	                else if (typeof node.width === 'number') {
+	                    base.figmaWidth = Math.round(node.width);
+	                }
+	            }
+	            catch (e) {
+	                // ignore
 	            }
 	        }
 	        catch (e) {
@@ -283,7 +399,7 @@
 	            const children = node.children;
 	            if (children && Array.isArray(children)) {
 	                const serializedChildren = children
-	                    .map((c) => serializeNode(c, options, imageMap))
+	                    .map((c) => serializeNode(c, options, imageMap, svgMap))
 	                    .filter((c) => c !== null);
 	                if (serializedChildren.length > 0) {
 	                    base.children = serializedChildren;
@@ -951,13 +1067,33 @@ const $ = (id) => document.getElementById(id);
 	        stage: 'serializing',
 	        percent: 5
 	    });
-	    // Collect image hashes and map to filenames
+	    // Collect image hashes and SVG-pattern nodes during a single tree walk.
 	    const imageMap = new Map();
+	    const svgMap = new Map();
 	    let imageCounter = 0;
-	    // Pre-scan helper to find all image hashes
-	    function scanForImageHashes(node) {
+	    let svgCounter = 0;
+	    function isPatternNode(n) {
+	        return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
+	    }
+	    function slugifyName(name) {
+	        return name
+	            .toLowerCase()
+	            .replace(/[^a-z0-9]+/g, '_')
+	            .replace(/^_+|_+$/g, '') || 'pattern';
+	    }
+	    function scanNode(node) {
 	        if (cancelExport)
 	            return;
+	        // Pattern nodes are exported as SVG; do not descend (their descendants are
+	        // absorbed into the SVG file and must not be serialized or PNG-extracted).
+	        if (isPatternNode(node)) {
+	            if (!svgMap.has(node.id)) {
+	                svgCounter++;
+	                const slug = slugifyName(node.name);
+	                svgMap.set(node.id, { fileName: `${slug}_${svgCounter}.svg` });
+	            }
+	            return;
+	        }
 	        try {
 	            if ('fills' in node && node.fills) {
 	                const fills = node.fills;
@@ -978,14 +1114,13 @@ const $ = (id) => document.getElementById(id);
 	            const children = node.children;
 	            if (children && Array.isArray(children)) {
 	                for (const c of children) {
-	                    scanForImageHashes(c);
+	                    scanNode(c);
 	                }
 	            }
 	        }
 	    }
-	    // Pre-scan all selected nodes for images
 	    for (const node of validNodes) {
-	        scanForImageHashes(node);
+	        scanNode(node);
 	    }
 	    if (cancelExport)
 	        return;
@@ -994,7 +1129,7 @@ const $ = (id) => document.getElementById(id);
 	    for (const node of validNodes) {
 	        if (cancelExport)
 	            return;
-	        const serialized = serializeNode(node, { includeHidden: options.includeHidden, embedImages: options.embedImages }, imageMap);
+	        const serialized = serializeNode(node, { includeHidden: options.includeHidden, embedImages: options.embedImages }, imageMap, svgMap);
 	        if (serialized) {
 	            frames.push(serialized);
 	        }
@@ -1046,6 +1181,49 @@ const $ = (id) => document.getElementById(id);
 	                stage: `error extracting ${fname}`,
 	                percent: undefined
 	            });
+	        }
+	    }
+	    if (cancelExport)
+	        return;
+	    // Extract SVGs for pattern groups/frames (rasterize the entire subtree to a single SVG file).
+	    const svgBytesMap = {};
+	    if (svgMap.size > 0) {
+	        figma.ui.postMessage({
+	            type: 'export-progress',
+	            stage: 'extracting-svgs',
+	            percent: 50
+	        });
+	        const totalSvgs = svgMap.size;
+	        let processedSvgs = 0;
+	        for (const [id, entry] of svgMap) {
+	            if (cancelExport)
+	                return;
+	            try {
+	                const node = figma.getNodeById(id);
+	                if (!node) {
+	                    console.warn(`SVG-pattern node not found for id: ${id}`);
+	                    continue;
+	                }
+	                const bytes = await node.exportAsync({ format: 'SVG' });
+	                svgBytesMap[entry.fileName] = bytes;
+	                processedSvgs++;
+	                if (totalSvgs > 0) {
+	                    const percent = 50 + Math.round((processedSvgs / totalSvgs) * 5);
+	                    figma.ui.postMessage({
+	                        type: 'export-progress',
+	                        stage: 'extracting-svgs',
+	                        percent
+	                    });
+	                }
+	            }
+	            catch (e) {
+	                console.error(`Error exporting SVG ${entry.fileName}:`, e);
+	                figma.ui.postMessage({
+	                    type: 'export-progress',
+	                    stage: `error extracting svg ${entry.fileName}`,
+	                    percent: undefined
+	                });
+	            }
 	        }
 	    }
 	    if (cancelExport)
@@ -1104,7 +1282,14 @@ const $ = (id) => document.getElementById(id);
 	        percent: 60
 	    });
 	    // Build JSON and zip
-	    const exportData = { frames };
+	    const firstNode = validNodes[0];
+	    const exportData = {
+	        canvas: {
+	            width: typeof firstNode.width === 'number' ? firstNode.width : 0,
+	            height: typeof firstNode.height === 'number' ? firstNode.height : 0
+	        },
+	        frames
+	    };
 	    const exportManifest = {
 	        plugin: 'Frame Exporter',
 	        pluginVersion: '1.0.0',
@@ -1121,10 +1306,13 @@ const $ = (id) => document.getElementById(id);
 	    const zip = new JSZip();
 	    zip.file('data.json', JSON.stringify(exportData, null, 2));
 	    zip.file('manifest.json', JSON.stringify(exportManifest, null, 2));
-	    // Add assets folder
+	    // Add assets folder (PNG image fills + SVG pattern exports)
 	    const assetsFolder = zip.folder('assets');
 	    if (assetsFolder) {
 	        for (const [fname, bytes] of Object.entries(imageBytesMap)) {
+	            assetsFolder.file(fname, bytes);
+	        }
+	        for (const [fname, bytes] of Object.entries(svgBytesMap)) {
 	            assetsFolder.file(fname, bytes);
 	        }
 	    }

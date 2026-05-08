@@ -7,12 +7,93 @@ export interface SerializeOptions {
   embedImages: boolean;
 }
 
+export interface SvgMapEntry {
+  fileName: string;
+}
+
+function paintToFillExport(p: any, imageMap?: Map<string, string>): FillExport | any {
+  if (!p) return null;
+  if (p.type === 'SOLID') {
+    return {
+      type: 'SOLID',
+      color: {
+        r: p.color.r,
+        g: p.color.g,
+        b: p.color.b,
+        a: p.opacity !== undefined ? p.opacity : 1
+      }
+    } as FillExport;
+  }
+  if (p.type === 'IMAGE') {
+    const mapped = imageMap?.get(p.imageHash);
+    return {
+      type: 'IMAGE',
+      imageHash: p.imageHash,
+      file: mapped ?? undefined,
+      scaleMode: p.scaleMode
+    } as FillExport;
+  }
+  if (
+    p.type === 'GRADIENT_LINEAR' ||
+    p.type === 'GRADIENT_RADIAL' ||
+    p.type === 'GRADIENT_ANGULAR' ||
+    p.type === 'GRADIENT_DIAMOND'
+  ) {
+    return {
+      type: 'GRADIENT',
+      gradient: {
+        type: p.type,
+        gradientStops: p.gradientStops,
+        gradientTransform: p.gradientTransform
+      }
+    } as FillExport;
+  }
+  return { type: p.type, raw: p };
+}
+
+function fillsKey(fills: FillExport[]): string {
+  return JSON.stringify(fills);
+}
+
 export function serializeNode(
   node: SceneNode,
   options: SerializeOptions,
-  imageMap: Map<string, string>
+  imageMap: Map<string, string>,
+  svgMap?: Map<string, SvgMapEntry>
 ): NodeExport | null {
   if (!node.visible && !options.includeHidden) return null;
+
+  // SVG short-circuit: pattern nodes are flattened into a single synthetic IMAGE fill
+  // and their children are dropped (the SVG is exported separately by the main thread).
+  if (svgMap && svgMap.has(node.id)) {
+    const entry = svgMap.get(node.id)!;
+    const out: any = {
+      id: node.id,
+      name: node.name,
+      type: node.type,
+      visible: node.visible
+    };
+    if ('x' in node) {
+      out.x = (node as any).x;
+      out.y = (node as any).y;
+    }
+    if ('width' in node) {
+      out.width = (node as any).width;
+      out.height = (node as any).height;
+    }
+    if ('rotation' in node) out.rotation = (node as any).rotation;
+    if ('opacity' in node) out.opacity = (node as any).opacity;
+    if ('blendMode' in node) out.blendMode = (node as any).blendMode;
+    out.fills = [
+      {
+        type: 'IMAGE',
+        imageHash: `svg_export_${node.id}`,
+        file: entry.fileName,
+        scaleMode: 'FILL'
+      } as FillExport
+    ];
+    return out as NodeExport;
+  }
 
   const base: any = {
     id: node.id,
@@ -82,57 +163,23 @@ export function serializeNode(
     };
   }
 
-  // Fills (including images)
+  // Fills (including images). When fills are figma.mixed (e.g. on text nodes with
+  // per-character colors) the getter throws and we intentionally omit the `fills` key,
+  // matching the ideal Health1 output for split-color titles.
   if ('fills' in node) {
     try {
       const fills = (node as any).fills as any[];
       if (fills && Array.isArray(fills) && fills.length > 0) {
         base.fills = fills
           .filter((f) => f && f.visible !== false)
-          .map((f) => {
-            if (f.type === 'SOLID') {
-              return {
-                type: 'SOLID',
-                color: {
-                  r: f.color.r,
-                  g: f.color.g,
-                  b: f.color.b,
-                  a: f.opacity !== undefined ? f.opacity : 1
-                }
-              } as FillExport;
-            }
-            if (f.type === 'IMAGE') {
-              // Register image hash for extraction
-              const mapped = imageMap.get(f.imageHash);
-              const fillExport: FillExport = {
-                type: 'IMAGE',
-                imageHash: f.imageHash,
-                file: mapped ?? undefined,
-                scaleMode: f.scaleMode
-              };
-              // dataUri will be set later during image extraction if embedImages is enabled
-              return fillExport;
-            }
-            if (f.type === 'GRADIENT_LINEAR' || f.type === 'GRADIENT_RADIAL' || f.type === 'GRADIENT_ANGULAR' || f.type === 'GRADIENT_DIAMOND') {
-              return {
-                type: 'GRADIENT',
-                gradient: {
-                  type: f.type,
-                  gradientStops: f.gradientStops,
-                  gradientTransform: f.gradientTransform
-                }
-              } as FillExport;
-            }
-            // Fallback for other fill types
-            return { type: f.type, raw: f } as any;
-          });
+          .map((f) => paintToFillExport(f, imageMap));
       }
     } catch (e) {
-      // Benign: fonts or mixed properties might throw
+      // Mixed fills: leave `fills` unset on purpose.
     }
   }
 
-  // Strokes
+  // Strokes — always emit when the node supports strokes, even if empty.
   if ('strokes' in node) {
     try {
       const strokes = (node as any).strokes as any[];
@@ -154,12 +201,11 @@ export function serializeNode(
             }
             return { type: s.type, raw: s };
           });
-      }
-      if ('strokeWeight' in node && (node as any).strokeWeight) {
-        if (!base.strokes) base.strokes = [];
+      } else {
+        base.strokes = [];
       }
     } catch (e) {
-      // Benign error handling
+      base.strokes = [];
     }
   }
 
@@ -191,6 +237,82 @@ export function serializeNode(
         base.textStyle.fontName = tn.fontName;
       } catch (e) {
         base.textStyle.fontName = 'mixed-or-unloaded';
+      }
+      try {
+        if (tn.textCase !== figma.mixed) {
+          base.textStyle.textCase = tn.textCase;
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Per-character style overrides (matches Figma REST: characterStyleOverrides + styleOverrideTable)
+      try {
+        const segments: any[] = (tn as any).getStyledTextSegments
+          ? (tn as any).getStyledTextSegments(['fills'])
+          : [];
+        const charLen = tn.characters.length;
+        const overrides: number[] = new Array(charLen).fill(0);
+        const overrideTable: Record<string, { fills: FillExport[] }> = {};
+
+        let baseFillsKey: string | null = null;
+        try {
+          const baseFillsRaw = (tn as any).fills;
+          if (baseFillsRaw && baseFillsRaw !== figma.mixed && Array.isArray(baseFillsRaw)) {
+            const baseFillsExp = baseFillsRaw
+              .filter((f: any) => f && f.visible !== false)
+              .map((f: any) => paintToFillExport(f, imageMap));
+            baseFillsKey = fillsKey(baseFillsExp);
+          }
+        } catch (e) {
+          // mixed fills: there is no single base style; every segment becomes an override
+        }
+
+        const keyToId = new Map<string, number>();
+        let nextId = 1;
+
+        for (const seg of segments) {
+          const segFillsExp = (seg.fills || [])
+            .filter((f: any) => f && f.visible !== false)
+            .map((f: any) => paintToFillExport(f, imageMap));
+          const segKey = fillsKey(segFillsExp);
+          let id = 0;
+          if (baseFillsKey !== null && segKey === baseFillsKey) {
+            id = 0;
+          } else {
+            if (!keyToId.has(segKey)) {
+              keyToId.set(segKey, nextId);
+              overrideTable[String(nextId)] = { fills: segFillsExp };
+              nextId++;
+            }
+            id = keyToId.get(segKey)!;
+          }
+          for (let i = seg.start; i < seg.end && i < charLen; i++) {
+            overrides[i] = id;
+          }
+        }
+
+        if (charLen > 0 && segments.length > 0) {
+          base.characterStyleOverrides = overrides;
+        }
+        if (Object.keys(overrideTable).length > 0) {
+          base.styleOverrideTable = overrideTable;
+        }
+      } catch (e) {
+        // segments not available — skip overrides quietly
+      }
+
+      // figmaWidth: rendered text width (longest line for wrapped text), independent
+      // of the layout box width imposed by the parent.
+      try {
+        const rb = (node as any).absoluteRenderBounds;
+        if (rb && typeof rb.width === 'number') {
+          base.figmaWidth = Math.round(rb.width);
+        } else if (typeof (node as any).width === 'number') {
+          base.figmaWidth = Math.round((node as any).width);
+        }
+      } catch (e) {
+        // ignore
       }
     } catch (e) {
       // Font not loaded or other text-related error
@@ -227,7 +349,7 @@ export function serializeNode(
       const children = (node as any).children as SceneNode[];
       if (children && Array.isArray(children)) {
         const serializedChildren = children
-          .map((c) => serializeNode(c, options, imageMap))
+          .map((c) => serializeNode(c, options, imageMap, svgMap))
           .filter((c) => c !== null);
         if (serializedChildren.length > 0) {
           base.children = serializedChildren;
@@ -240,4 +362,3 @@ export function serializeNode(
 
   return base as NodeExport;
 }
-

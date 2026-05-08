@@ -1,8 +1,15 @@
 // src/code.ts
 // @ts-ignore - JSZip doesn't have proper ES module exports
 import JSZip from 'jszip';
-import { serializeNode } from './lib/serializer';
-import { ExportOptions, UIToMainMessage, MainToUIMessage, ExportManifest, NodeExport } from './lib/types';
+import { serializeNode, SvgMapEntry } from './lib/serializer';
+import {
+  ExportOptions,
+  UIToMainMessage,
+  MainToUIMessage,
+  ExportManifest,
+  NodeExport,
+  ExportData
+} from './lib/types';
 
 // Helper to convert Uint8Array to base64
 function toBase64(uint8: Uint8Array): string {
@@ -120,13 +127,35 @@ async function runExport(options: ExportOptions) {
     percent: 5
   } as MainToUIMessage);
 
-  // Collect image hashes and map to filenames
+  // Collect image hashes and SVG-pattern nodes during a single tree walk.
   const imageMap = new Map<string, string>();
+  const svgMap = new Map<string, SvgMapEntry>();
   let imageCounter = 0;
+  let svgCounter = 0;
 
-  // Pre-scan helper to find all image hashes
-  function scanForImageHashes(node: SceneNode) {
+  function isPatternNode(n: SceneNode): boolean {
+    return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
+  }
+
+  function slugifyName(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'pattern';
+  }
+
+  function scanNode(node: SceneNode) {
     if (cancelExport) return;
+    // Pattern nodes are exported as SVG; do not descend (their descendants are
+    // absorbed into the SVG file and must not be serialized or PNG-extracted).
+    if (isPatternNode(node)) {
+      if (!svgMap.has(node.id)) {
+        svgCounter++;
+        const slug = slugifyName(node.name);
+        svgMap.set(node.id, { fileName: `${slug}_${svgCounter}.svg` });
+      }
+      return;
+    }
     try {
       if ('fills' in node && (node as any).fills) {
         const fills = (node as any).fills as any[];
@@ -146,15 +175,14 @@ async function runExport(options: ExportOptions) {
       const children = (node as any).children as SceneNode[];
       if (children && Array.isArray(children)) {
         for (const c of children) {
-          scanForImageHashes(c);
+          scanNode(c);
         }
       }
     }
   }
 
-  // Pre-scan all selected nodes for images
   for (const node of validNodes) {
-    scanForImageHashes(node);
+    scanNode(node);
   }
 
   if (cancelExport) return;
@@ -166,7 +194,8 @@ async function runExport(options: ExportOptions) {
     const serialized = serializeNode(
       node as SceneNode,
       { includeHidden: options.includeHidden, embedImages: options.embedImages },
-      imageMap
+      imageMap,
+      svgMap
     );
     if (serialized) {
       frames.push(serialized);
@@ -222,6 +251,51 @@ async function runExport(options: ExportOptions) {
         stage: `error extracting ${fname}`,
         percent: undefined
       } as MainToUIMessage);
+    }
+  }
+
+  if (cancelExport) return;
+
+  // Extract SVGs for pattern groups/frames (rasterize the entire subtree to a single SVG file).
+  const svgBytesMap: Record<string, Uint8Array> = {};
+  if (svgMap.size > 0) {
+    figma.ui.postMessage({
+      type: 'export-progress',
+      stage: 'extracting-svgs',
+      percent: 50
+    } as MainToUIMessage);
+
+    const totalSvgs = svgMap.size;
+    let processedSvgs = 0;
+
+    for (const [id, entry] of svgMap) {
+      if (cancelExport) return;
+      try {
+        const node = figma.getNodeById(id) as SceneNode | null;
+        if (!node) {
+          console.warn(`SVG-pattern node not found for id: ${id}`);
+          continue;
+        }
+        const bytes = await (node as any).exportAsync({ format: 'SVG' });
+        svgBytesMap[entry.fileName] = bytes;
+
+        processedSvgs++;
+        if (totalSvgs > 0) {
+          const percent = 50 + Math.round((processedSvgs / totalSvgs) * 5);
+          figma.ui.postMessage({
+            type: 'export-progress',
+            stage: 'extracting-svgs',
+            percent
+          } as MainToUIMessage);
+        }
+      } catch (e: any) {
+        console.error(`Error exporting SVG ${entry.fileName}:`, e);
+        figma.ui.postMessage({
+          type: 'export-progress',
+          stage: `error extracting svg ${entry.fileName}`,
+          percent: undefined
+        } as MainToUIMessage);
+      }
     }
   }
 
@@ -285,7 +359,14 @@ async function runExport(options: ExportOptions) {
   } as MainToUIMessage);
 
   // Build JSON and zip
-  const exportData = { frames };
+  const firstNode = validNodes[0] as any;
+  const exportData: ExportData = {
+    canvas: {
+      width: typeof firstNode.width === 'number' ? firstNode.width : 0,
+      height: typeof firstNode.height === 'number' ? firstNode.height : 0
+    },
+    frames
+  };
   const exportManifest: ExportManifest = {
     plugin: 'Frame Exporter',
     pluginVersion: '1.0.0',
@@ -304,10 +385,13 @@ async function runExport(options: ExportOptions) {
   zip.file('data.json', JSON.stringify(exportData, null, 2));
   zip.file('manifest.json', JSON.stringify(exportManifest, null, 2));
 
-  // Add assets folder
+  // Add assets folder (PNG image fills + SVG pattern exports)
   const assetsFolder = zip.folder('assets');
   if (assetsFolder) {
     for (const [fname, bytes] of Object.entries(imageBytesMap)) {
+      assetsFolder.file(fname, bytes);
+    }
+    for (const [fname, bytes] of Object.entries(svgBytesMap)) {
       assetsFolder.file(fname, bytes);
     }
   }

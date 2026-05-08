@@ -28,6 +28,7 @@ export interface TextStyleInfo {
   lineHeight?: LineHeight;
   letterSpacing?: LetterSpacing;
   fontName?: FontName | string;
+  textCase?: 'ORIGINAL' | 'UPPER' | 'LOWER' | 'TITLE' | 'SMALL_CAPS' | 'SMALL_CAPS_FORCED';
 }
 
 export type FillExport =
@@ -63,11 +64,19 @@ export interface NodeExport {
   cornerRadii?: { topLeft: number; topRight: number; bottomLeft: number; bottomRight: number } | null;
   characters?: string | null; // for text nodes
   textStyle?: TextStyleInfo | null;
+  characterStyleOverrides?: number[];
+  styleOverrideTable?: Record<string, { fills?: FillExport[] }>;
+  figmaWidth?: number;
   vectorPaths?: any[] | null; // optional
   component?: { mainComponentId?: string; isInstance?: boolean } | null;
   children?: NodeExport[];
   exportPreviewFile?: string | null; // e.g. "previews/frame_1.png"
   meta?: any; // any plugin specific extra
+}
+
+export interface ExportData {
+  canvas: { width: number; height: number };
+  frames: NodeExport[];
 }
 
 export interface ExportManifest {

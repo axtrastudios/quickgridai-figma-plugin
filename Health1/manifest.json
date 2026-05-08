@@ -1,0 +1,32 @@
+{
+  "plugin": "Frame Exporter",
+  "pluginVersion": "1.0.0",
+  "generatedAt": "2026-05-04T13:18:35.484Z",
+  "frameCount": 3,
+  "frames": [
+    {
+      "id": "2208:45",
+      "name": "1"
+    },
+    {
+      "id": "2208:64",
+      "name": "2"
+    },
+    {
+      "id": "2208:68",
+      "name": "3"
+    }
+  ],
+  "options": {
+    "includeHidden": true,
+    "embedImages": false,
+    "exportPreview": true,
+    "exportScale": 2,
+    "filename": "export.zip"
+  },
+  "source": {
+    "fileName": "Untitled",
+    "pageId": "0:1",
+    "pageName": "Page 1"
+  }
+}
