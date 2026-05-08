@@ -106,7 +106,8 @@ export interface PreviewOptions {
 
 // Main to UI thread messages
 export type MainToUIMessage =
-  | { type: 'export-ready'; fileName: string; zipBytes: Uint8Array | number[] }
+  | { type: 'export-ready'; fileName: string; zipBytes: Uint8Array }
+  | { type: 'export-chunk'; fileName: string; index: number; total: number; chunk: Uint8Array }
   | { type: 'export-progress'; stage: string; percent?: number }
   | { type: 'export-error'; error: string; code?: string }
   | { type: 'preview-ready'; nodeId: string; bytes: Uint8Array; format: 'PNG' | 'JPG' };

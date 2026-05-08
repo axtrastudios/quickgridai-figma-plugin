@@ -29,6 +29,29 @@
     };
     let isExporting = false;
     let exportBtn = null;
+    // Buffer for chunked zip delivery from the main thread. Each entry is a
+    // Uint8Array slice; the Blob constructor accepts the list directly so we
+    // never copy or concatenate on the UI side.
+    let receivedChunks = [];
+    let receivedFileName = '';
+    function triggerDownload(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        updateStatus('Download started!');
+        updateProgress(100);
+        setTimeout(() => {
+            isExporting = false;
+            if (exportBtn)
+                exportBtn.disabled = false;
+            updateProgress(undefined);
+        }, 1000);
+    }
     // Wait for DOM to be ready
     function init() {
         exportBtn = $('exportBtn');
@@ -94,28 +117,31 @@
                 if (exportBtn)
                     exportBtn.disabled = false;
                 break;
-            case 'export-ready':
-                // msg.zipBytes is an array (converted from Uint8Array for message passing)
-                const uint8Array = new Uint8Array(msg.zipBytes);
-                const blob = new Blob([uint8Array], { type: 'application/zip' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = msg.fileName;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-                updateStatus('Download started!');
-                updateProgress(100);
-                // Re-enable button after a short delay
-                setTimeout(() => {
-                    isExporting = false;
-                    if (exportBtn)
-                        exportBtn.disabled = false;
-                    updateProgress(undefined);
-                }, 1000);
+            case 'export-ready': {
+                // Single-shot delivery (small zip): msg.zipBytes is a Uint8Array.
+                // Cast to BlobPart[] because TS lib.dom narrows Uint8Array generics.
+                const blob = new Blob([msg.zipBytes], { type: 'application/zip' });
+                receivedChunks = [];
+                receivedFileName = '';
+                triggerDownload(blob, msg.fileName);
                 break;
+            }
+            case 'export-chunk': {
+                // Streamed delivery for large zips: accumulate ordered Uint8Array slices,
+                // then assemble a Blob from the whole list once we've seen the last chunk.
+                receivedChunks.push(msg.chunk);
+                receivedFileName = msg.fileName;
+                if (msg.index + 1 === msg.total) {
+                    const blob = new Blob(receivedChunks, {
+                        type: 'application/zip'
+                    });
+                    const fileName = receivedFileName;
+                    receivedChunks = [];
+                    receivedFileName = '';
+                    triggerDownload(blob, fileName);
+                }
+                break;
+            }
             case 'preview-ready':
                 // Handle individual preview if needed
                 updateStatus(`Preview ready for ${msg.nodeId}`);

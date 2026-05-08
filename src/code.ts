@@ -381,18 +381,32 @@ async function runExport(options: ExportOptions) {
     }
   };
 
-  const zip = new JSZip();
-  zip.file('data.json', JSON.stringify(exportData, null, 2));
-  zip.file('manifest.json', JSON.stringify(exportManifest, null, 2));
+  // Per-file compression policy:
+  //   - JSON: DEFLATE (text compresses well)
+  //   - PNG/JPG already-compressed binaries: STORE (re-DEFLATE saves <2% but eats CPU + RAM)
+  //   - SVG: DEFLATE (it's text)
+  const STORE = { compression: 'STORE' as const };
+  const DEFLATE = {
+    compression: 'DEFLATE' as const,
+    compressionOptions: { level: 6 }
+  };
 
-  // Add assets folder (PNG image fills + SVG pattern exports)
+  const zip = new JSZip();
+  // data.json is unindented to keep large exports tractable; manifest.json stays pretty for humans.
+  zip.file('data.json', JSON.stringify(exportData), DEFLATE);
+  zip.file('manifest.json', JSON.stringify(exportManifest, null, 2), DEFLATE);
+
+  // Add assets folder (PNG image fills + SVG pattern exports). Drop each source
+  // buffer reference as soon as JSZip has taken ownership so peak RAM stays bounded.
   const assetsFolder = zip.folder('assets');
   if (assetsFolder) {
-    for (const [fname, bytes] of Object.entries(imageBytesMap)) {
-      assetsFolder.file(fname, bytes);
+    for (const fname of Object.keys(imageBytesMap)) {
+      assetsFolder.file(fname, imageBytesMap[fname], STORE);
+      delete imageBytesMap[fname];
     }
-    for (const [fname, bytes] of Object.entries(svgBytesMap)) {
-      assetsFolder.file(fname, bytes);
+    for (const fname of Object.keys(svgBytesMap)) {
+      assetsFolder.file(fname, svgBytesMap[fname], DEFLATE);
+      delete svgBytesMap[fname];
     }
   }
 
@@ -400,34 +414,92 @@ async function runExport(options: ExportOptions) {
   if (options.exportPreview && Object.keys(previewBytesMap).length > 0) {
     const previewsFolder = zip.folder('previews');
     if (previewsFolder) {
-      for (const [fname, bytes] of Object.entries(previewBytesMap)) {
+      for (const fname of Object.keys(previewBytesMap)) {
         const fileName = fname.replace('previews/', '');
-        previewsFolder.file(fileName, bytes);
+        previewsFolder.file(fileName, previewBytesMap[fname], STORE);
+        delete previewBytesMap[fname];
       }
     }
   }
 
-  const zipBytes = await zip.generateAsync(
-    { type: 'uint8array', compression: 'DEFLATE', compressionOptions: { level: 6 } },
-    (metadata: any) => {
-      if (!cancelExport) {
-        figma.ui.postMessage({
-          type: 'export-progress',
-          stage: 'zipping',
-          percent: 60 + Math.round((metadata.percent / 100) * 30)
-        } as MainToUIMessage);
-      }
-    }
-  );
+  const expectedFileCount = Object.keys((zip as any).files || {}).length;
+  console.log(`[export] zip will contain ${expectedFileCount} entries`);
+
+  // Stream the zip output. streamFiles=true tells JSZip to emit each file's
+  // bytes as it goes instead of buffering a second copy of every entry.
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  await new Promise<void>((resolve, reject) => {
+    (zip as any)
+      .generateInternalStream({
+        type: 'uint8array',
+        streamFiles: true,
+        compression: 'STORE'
+      })
+      .on('data', (data: Uint8Array, metadata: any) => {
+        chunks.push(data);
+        totalBytes += data.byteLength;
+        if (!cancelExport && metadata && typeof metadata.percent === 'number') {
+          figma.ui.postMessage({
+            type: 'export-progress',
+            stage: 'zipping',
+            percent: 60 + Math.round((metadata.percent / 100) * 30)
+          } as MainToUIMessage);
+        }
+      })
+      .on('error', (err: any) => reject(err))
+      .on('end', () => resolve())
+      .resume();
+  });
 
   if (cancelExport) return;
 
+  console.log(`[export] zip stream produced ${totalBytes} bytes across ${chunks.length} chunks`);
+
+  // Concatenate stream chunks into a single Uint8Array, then free the per-chunk
+  // references so only one copy of the output is in memory at delivery time.
+  const merged = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const c of chunks) {
+    merged.set(c, offset);
+    offset += c.byteLength;
+  }
+  chunks.length = 0;
+
   const fileName = options.filename || 'Export.zip';
-  figma.ui.postMessage({
-    type: 'export-ready',
-    fileName,
-    zipBytes: Array.from(zipBytes) // Convert to array for message passing
-  } as MainToUIMessage);
+  // 16 MiB is well under any practical postMessage structured-clone ceiling
+  // and lets a 200MB zip stream over in ~13 messages.
+  const CHUNK_SIZE = 16 * 1024 * 1024;
+
+  if (merged.byteLength <= CHUNK_SIZE) {
+    figma.ui.postMessage({
+      type: 'export-ready',
+      fileName,
+      zipBytes: merged
+    } as MainToUIMessage);
+  } else {
+    const totalChunks = Math.ceil(merged.byteLength / CHUNK_SIZE);
+    for (let i = 0; i < totalChunks; i++) {
+      if (cancelExport) return;
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, merged.byteLength);
+      // subarray is a zero-copy view; structured-clone of a Uint8Array view
+      // copies only the referenced range across the boundary.
+      const slice = merged.subarray(start, end);
+      figma.ui.postMessage({
+        type: 'export-chunk',
+        fileName,
+        index: i,
+        total: totalChunks,
+        chunk: slice
+      } as MainToUIMessage);
+      figma.ui.postMessage({
+        type: 'export-progress',
+        stage: 'delivering',
+        percent: 90 + Math.round(((i + 1) / totalChunks) * 10)
+      } as MainToUIMessage);
+    }
+  }
 
   figma.notify(`Export complete: ${fileName}`);
 }
