@@ -275,32 +275,58 @@
 	        try {
 	            const tn = node;
 	            base.characters = tn.characters;
-	            base.textStyle = {
-	                fontSize: tn.fontSize,
-	                textAlignHorizontal: tn.textAlignHorizontal,
-	                textAlignVertical: tn.textAlignVertical,
-	                lineHeight: tn.lineHeight,
-	                letterSpacing: tn.letterSpacing
-	            };
+	            // Fetch styled text segments once and reuse for both textStyle fallback
+	            // values and the per-character override table below. We request every
+	            // property we serialize so a mixed direct getter (figma.mixed Symbol,
+	            // which JSON.stringify silently drops) can fall back to the first
+	            // segment's concrete value.
+	            let segments = [];
 	            try {
-	                base.textStyle.fontName = tn.fontName;
+	                if (tn.getStyledTextSegments) {
+	                    segments = tn.getStyledTextSegments([
+	                        'fills',
+	                        'fontSize',
+	                        'fontName',
+	                        'lineHeight',
+	                        'letterSpacing',
+	                        'textCase'
+	                    ]);
+	                }
 	            }
 	            catch (e) {
-	                base.textStyle.fontName = 'mixed-or-unloaded';
+	                segments = [];
+	            }
+	            const seg0 = segments[0] || {};
+	            const pick = (direct, fromSegment) => {
+	                return direct === figma.mixed ? fromSegment : direct;
+	            };
+	            base.textStyle = {
+	                fontSize: pick(tn.fontSize, seg0.fontSize),
+	                textAlignHorizontal: tn.textAlignHorizontal,
+	                textAlignVertical: tn.textAlignVertical,
+	                lineHeight: pick(tn.lineHeight, seg0.lineHeight),
+	                letterSpacing: pick(tn.letterSpacing, seg0.letterSpacing)
+	            };
+	            try {
+	                const fontNameVal = pick(tn.fontName, seg0.fontName);
+	                if (fontNameVal)
+	                    base.textStyle.fontName = fontNameVal;
+	            }
+	            catch (e) {
+	                // Font getter threw (e.g. unloaded font) — fall back to first segment if we have it.
+	                if (seg0.fontName)
+	                    base.textStyle.fontName = seg0.fontName;
 	            }
 	            try {
-	                if (tn.textCase !== figma.mixed) {
-	                    base.textStyle.textCase = tn.textCase;
-	                }
+	                const textCaseVal = pick(tn.textCase, seg0.textCase);
+	                if (textCaseVal)
+	                    base.textStyle.textCase = textCaseVal;
 	            }
 	            catch (e) {
 	                // ignore
 	            }
 	            // Per-character style overrides (matches Figma REST: characterStyleOverrides + styleOverrideTable)
 	            try {
-	                const segments = tn.getStyledTextSegments
-	                    ? tn.getStyledTextSegments(['fills'])
-	                    : [];
 	                const charLen = tn.characters.length;
 	                const overrides = new Array(charLen).fill(0);
 	                const overrideTable = {};
