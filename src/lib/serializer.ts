@@ -5,6 +5,19 @@ import { NodeExport, FillExport } from './types';
 export interface SerializeOptions {
   includeHidden: boolean;
   embedImages: boolean;
+  /** When set, TEXT layers named *_Title, *_Description, or *_SubTitle export `width` as frameWidth − 2×(horizontal offset from that frame). */
+  typographyContext?: {
+    frameWidth: number;
+    frameNode: SceneNode;
+  };
+}
+
+function isTypographySlotName(name: string): boolean {
+  return /_Title$/i.test(name) || /_Description$/i.test(name) || /_SubTitle$/i.test(name);
+}
+
+function horizontalOffsetFromFrame(node: SceneNode, frame: SceneNode): number {
+  return node.absoluteTransform[0][2] - frame.absoluteTransform[0][2];
 }
 
 export interface SvgMapEntry {
@@ -338,6 +351,15 @@ export function serializeNode(
         }
       } catch (e) {
         // ignore
+      }
+
+      // Typography slots: exported layout width matches full-bleed text column:
+      // width = frameWidth − 2×left, where left is distance from the export frame's left edge.
+      const typo = options.typographyContext;
+      if (typo && isTypographySlotName(node.name) && typeof base.width === 'number') {
+        const left = horizontalOffsetFromFrame(node as SceneNode, typo.frameNode);
+        const w = Math.round(typo.frameWidth - 2 * left);
+        base.width = Math.max(0, w);
       }
     } catch (e) {
       // Font not loaded or other text-related error

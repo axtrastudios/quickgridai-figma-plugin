@@ -193,7 +193,14 @@ async function runExport(options: ExportOptions) {
     if (cancelExport) return;
     const serialized = serializeNode(
       node as SceneNode,
-      { includeHidden: options.includeHidden, embedImages: options.embedImages },
+      {
+        includeHidden: options.includeHidden,
+        embedImages: options.embedImages,
+        typographyContext: {
+          frameWidth: (node as LayoutMixin).width,
+          frameNode: node as SceneNode
+        }
+      },
       imageMap,
       svgMap
     );

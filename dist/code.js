@@ -69,6 +69,12 @@
 	var jszip_minExports = requireJszip_min();
 	var JSZip = /*@__PURE__*/getDefaultExportFromCjs(jszip_minExports);
 
+	function isTypographySlotName(name) {
+	    return /_Title$/i.test(name) || /_Description$/i.test(name) || /_SubTitle$/i.test(name);
+	}
+	function horizontalOffsetFromFrame(node, frame) {
+	    return node.absoluteTransform[0][2] - frame.absoluteTransform[0][2];
+	}
 	function paintToFillExport(p, imageMap) {
 	    if (!p)
 	        return null;
@@ -389,6 +395,14 @@
 	            }
 	            catch (e) {
 	                // ignore
+	            }
+	            // Typography slots: exported layout width matches full-bleed text column:
+	            // width = frameWidth − 2×left, where left is distance from the export frame's left edge.
+	            const typo = options.typographyContext;
+	            if (typo && isTypographySlotName(node.name) && typeof base.width === 'number') {
+	                const left = horizontalOffsetFromFrame(node, typo.frameNode);
+	                const w = Math.round(typo.frameWidth - 2 * left);
+	                base.width = Math.max(0, w);
 	            }
 	        }
 	        catch (e) {
@@ -1181,7 +1195,14 @@ const $ = (id) => document.getElementById(id);
 	    for (const node of validNodes) {
 	        if (cancelExport)
 	            return;
-	        const serialized = serializeNode(node, { includeHidden: options.includeHidden, embedImages: options.embedImages }, imageMap, svgMap);
+	        const serialized = serializeNode(node, {
+	            includeHidden: options.includeHidden,
+	            embedImages: options.embedImages,
+	            typographyContext: {
+	                frameWidth: node.width,
+	                frameNode: node
+	            }
+	        }, imageMap, svgMap);
 	        if (serialized) {
 	            frames.push(serialized);
 	        }
