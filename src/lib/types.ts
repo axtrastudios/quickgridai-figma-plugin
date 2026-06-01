@@ -34,7 +34,15 @@ export interface TextStyleInfo {
 export type FillExport =
   | { type: 'SOLID'; color: { r: number; g: number; b: number; a?: number } }
   | { type: 'GRADIENT'; gradient: any }
-  | { type: 'IMAGE'; imageHash: string; file?: string; dataUri?: string; scaleMode?: string };
+  | {
+      type: 'IMAGE';
+      imageHash: string;
+      file?: string;
+      dataUri?: string;
+      scaleMode?: string;
+      opacity: number;
+      imageTransform?: [[number, number, number], [number, number, number]];
+    };
 
 export interface StrokeExport {
   type: string;

@@ -1,7 +1,7 @@
 // src/code.ts
 // @ts-ignore - JSZip doesn't have proper ES module exports
 import JSZip from 'jszip';
-import { serializeNode, SvgMapEntry } from './lib/serializer';
+import { serializeNode, SvgMapEntry, isBackgroundImageNode } from './lib/serializer';
 import {
   ExportOptions,
   UIToMainMessage,
@@ -129,8 +129,10 @@ async function runExport(options: ExportOptions) {
 
   // Collect image hashes and SVG-pattern nodes during a single tree walk.
   const imageMap = new Map<string, string>();
+  const layerRenderMap = new Map<string, string>();
   const svgMap = new Map<string, SvgMapEntry>();
   let imageCounter = 0;
+  let bgImageCounter = 0;
   let svgCounter = 0;
 
   function isPatternNode(n: SceneNode): boolean {
@@ -142,6 +144,19 @@ async function runExport(options: ExportOptions) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
       .replace(/^_+|_+$/g, '') || 'pattern';
+  }
+
+  function hasVisibleImageFill(n: SceneNode): boolean {
+    try {
+      if (!('fills' in n)) return false;
+      const fills = (n as any).fills as any[];
+      if (!fills || !Array.isArray(fills)) return false;
+      return fills.some(
+        (f) => f && f.type === 'IMAGE' && f.imageHash && f.visible !== false
+      );
+    } catch {
+      return false;
+    }
   }
 
   function scanNode(node: SceneNode) {
@@ -156,20 +171,27 @@ async function runExport(options: ExportOptions) {
       }
       return;
     }
-    try {
-      if ('fills' in node && (node as any).fills) {
-        const fills = (node as any).fills as any[];
-        for (const f of fills) {
-          if (f && f.type === 'IMAGE' && f.imageHash) {
-            if (!imageMap.has(f.imageHash)) {
-              imageCounter++;
-              imageMap.set(f.imageHash, `image_${imageCounter}.png`);
+    if (isBackgroundImageNode(node) && hasVisibleImageFill(node)) {
+      if (!layerRenderMap.has(node.id)) {
+        bgImageCounter++;
+        layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+      }
+    } else {
+      try {
+        if ('fills' in node && (node as any).fills) {
+          const fills = (node as any).fills as any[];
+          for (const f of fills) {
+            if (f && f.type === 'IMAGE' && f.imageHash) {
+              if (!imageMap.has(f.imageHash)) {
+                imageCounter++;
+                imageMap.set(f.imageHash, `image_${imageCounter}.png`);
+              }
             }
           }
         }
+      } catch (e) {
+        // Benign error
       }
-    } catch (e) {
-      // Benign error
     }
     if ('children' in node) {
       const children = (node as any).children as SceneNode[];
@@ -202,7 +224,8 @@ async function runExport(options: ExportOptions) {
         }
       },
       imageMap,
-      svgMap
+      svgMap,
+      layerRenderMap
     );
     if (serialized) {
       frames.push(serialized);
@@ -219,7 +242,7 @@ async function runExport(options: ExportOptions) {
 
   // Extract image bytes
   const imageBytesMap: Record<string, Uint8Array> = {};
-  const totalImages = imageMap.size;
+  const totalImages = imageMap.size + layerRenderMap.size;
   let processedImages = 0;
 
   for (const [hash, fname] of imageMap) {
@@ -253,6 +276,62 @@ async function runExport(options: ExportOptions) {
       }
     } catch (e: any) {
       console.error(`Error extracting image ${fname}:`, e);
+      figma.ui.postMessage({
+        type: 'export-progress',
+        stage: `error extracting ${fname}`,
+        percent: undefined
+      } as MainToUIMessage);
+    }
+  }
+
+  for (const [nodeId, fname] of layerRenderMap) {
+    if (cancelExport) return;
+    try {
+      const bgNode = figma.getNodeById(nodeId) as SceneNode | null;
+      if (!bgNode) {
+        console.warn(`Background image node not found for id: ${nodeId}`);
+        continue;
+      }
+      const bytes = await (bgNode as ExportMixin).exportAsync({
+        format: 'PNG',
+        constraint: { type: 'SCALE', value: 1 }
+      });
+      imageBytesMap[fname] = bytes;
+
+      if (options.embedImages) {
+        const dataUri = `data:image/png;base64,${toBase64(bytes)}`;
+        let imageHash: string | undefined;
+        try {
+          if ('fills' in bgNode) {
+            const fills = (bgNode as GeometryMixin).fills;
+            if (fills && Array.isArray(fills)) {
+              const imgFill = fills.find(
+                (f): f is ImagePaint => f.type === 'IMAGE' && !!f.imageHash
+              );
+              imageHash = imgFill?.imageHash ?? undefined;
+            }
+          }
+        } catch {
+          // ignore
+        }
+        if (imageHash) {
+          for (const frame of frames) {
+            updateFillDataUri(frame, imageHash, dataUri);
+          }
+        }
+      }
+
+      processedImages++;
+      if (totalImages > 0) {
+        const percent = 30 + Math.round((processedImages / totalImages) * 20);
+        figma.ui.postMessage({
+          type: 'export-progress',
+          stage: 'extracting-images',
+          percent
+        } as MainToUIMessage);
+      }
+    } catch (e: any) {
+      console.error(`Error exporting background image ${fname}:`, e);
       figma.ui.postMessage({
         type: 'export-progress',
         stage: `error extracting ${fname}`,

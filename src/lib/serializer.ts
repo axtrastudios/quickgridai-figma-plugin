@@ -5,26 +5,44 @@ import { NodeExport, FillExport } from './types';
 export interface SerializeOptions {
   includeHidden: boolean;
   embedImages: boolean;
-  /** When set, TEXT layers named *_Title, *_Description, or *_SubTitle export `width` as frameWidth − 2×(horizontal offset from that frame). */
+  /** When set, TEXT layers named *_Title, *_Description, or *_SubTitle export normalized `x` (51px from frame left) and `width` (frameWidth − 102). */
   typographyContext?: {
     frameWidth: number;
     frameNode: SceneNode;
   };
 }
 
+const TYPOGRAPHY_MARGIN_X = 51;
+
 function isTypographySlotName(name: string): boolean {
   return /_Title$/i.test(name) || /_Description$/i.test(name) || /_SubTitle$/i.test(name);
 }
 
-function horizontalOffsetFromFrame(node: SceneNode, frame: SceneNode): number {
-  return node.absoluteTransform[0][2] - frame.absoluteTransform[0][2];
+function typographyXRelativeToParent(node: SceneNode, frame: SceneNode, margin: number): number {
+  const frameLeft = frame.absoluteTransform[0][2];
+  const targetAbsX = frameLeft + margin;
+  const parent = node.parent;
+  if (!parent || parent === frame) {
+    return margin;
+  }
+  const parentLeft = (parent as SceneNode).absoluteTransform[0][2];
+  return targetAbsX - parentLeft;
 }
 
 export interface SvgMapEntry {
   fileName: string;
 }
 
-function paintToFillExport(p: any, imageMap?: Map<string, string>): FillExport | any {
+export function isBackgroundImageNode(n: SceneNode): boolean {
+  return /_BackgroundImage$/i.test(n.name);
+}
+
+function paintToFillExport(
+  p: any,
+  imageMap?: Map<string, string>,
+  layerRenderMap?: Map<string, string>,
+  nodeId?: string
+): FillExport | any {
   if (!p) return null;
   if (p.type === 'SOLID') {
     return {
@@ -38,13 +56,19 @@ function paintToFillExport(p: any, imageMap?: Map<string, string>): FillExport |
     } as FillExport;
   }
   if (p.type === 'IMAGE') {
-    const mapped = imageMap?.get(p.imageHash);
-    return {
+    const layerFile = nodeId ? layerRenderMap?.get(nodeId) : undefined;
+    const mapped = layerFile ?? imageMap?.get(p.imageHash);
+    const fill: FillExport = {
       type: 'IMAGE',
       imageHash: p.imageHash,
       file: mapped ?? undefined,
-      scaleMode: p.scaleMode
-    } as FillExport;
+      scaleMode: p.scaleMode,
+      opacity: typeof p.opacity === 'number' ? p.opacity : 1
+    };
+    if (p.imageTransform) {
+      (fill as { imageTransform?: typeof p.imageTransform }).imageTransform = p.imageTransform;
+    }
+    return fill;
   }
   if (
     p.type === 'GRADIENT_LINEAR' ||
@@ -72,7 +96,8 @@ export function serializeNode(
   node: SceneNode,
   options: SerializeOptions,
   imageMap: Map<string, string>,
-  svgMap?: Map<string, SvgMapEntry>
+  svgMap?: Map<string, SvgMapEntry>,
+  layerRenderMap?: Map<string, string>
 ): NodeExport | null {
   if (!node.visible && !options.includeHidden) return null;
 
@@ -102,7 +127,8 @@ export function serializeNode(
         type: 'IMAGE',
         imageHash: `svg_export_${node.id}`,
         file: entry.fileName,
-        scaleMode: 'FILL'
+        scaleMode: 'FILL',
+        opacity: 1
       } as FillExport
     ];
     return out as NodeExport;
@@ -185,7 +211,7 @@ export function serializeNode(
       if (fills && Array.isArray(fills) && fills.length > 0) {
         base.fills = fills
           .filter((f) => f && f.visible !== false)
-          .map((f) => paintToFillExport(f, imageMap));
+          .map((f) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
       }
     } catch (e) {
       // Mixed fills: leave `fills` unset on purpose.
@@ -299,7 +325,7 @@ export function serializeNode(
           if (baseFillsRaw && baseFillsRaw !== figma.mixed && Array.isArray(baseFillsRaw)) {
             const baseFillsExp = baseFillsRaw
               .filter((f: any) => f && f.visible !== false)
-              .map((f: any) => paintToFillExport(f, imageMap));
+              .map((f: any) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
             baseFillsKey = fillsKey(baseFillsExp);
           }
         } catch (e) {
@@ -312,7 +338,7 @@ export function serializeNode(
         for (const seg of segments) {
           const segFillsExp = (seg.fills || [])
             .filter((f: any) => f && f.visible !== false)
-            .map((f: any) => paintToFillExport(f, imageMap));
+            .map((f: any) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
           const segKey = fillsKey(segFillsExp);
           let id = 0;
           if (baseFillsKey !== null && segKey === baseFillsKey) {
@@ -353,13 +379,13 @@ export function serializeNode(
         // ignore
       }
 
-      // Typography slots: exported layout width matches full-bleed text column:
-      // width = frameWidth − 2×left, where left is distance from the export frame's left edge.
+      // Typography slots: fixed content column (51px margins on each side of the frame).
       const typo = options.typographyContext;
       if (typo && isTypographySlotName(node.name) && typeof base.width === 'number') {
-        const left = horizontalOffsetFromFrame(node as SceneNode, typo.frameNode);
-        const w = Math.round(typo.frameWidth - 2 * left);
-        base.width = Math.max(0, w);
+        base.width = Math.max(0, Math.round(typo.frameWidth - 2 * TYPOGRAPHY_MARGIN_X));
+        if ('x' in node) {
+          base.x = typographyXRelativeToParent(node as SceneNode, typo.frameNode, TYPOGRAPHY_MARGIN_X);
+        }
       }
     } catch (e) {
       // Font not loaded or other text-related error
@@ -396,7 +422,7 @@ export function serializeNode(
       const children = (node as any).children as SceneNode[];
       if (children && Array.isArray(children)) {
         const serializedChildren = children
-          .map((c) => serializeNode(c, options, imageMap, svgMap))
+          .map((c) => serializeNode(c, options, imageMap, svgMap, layerRenderMap))
           .filter((c) => c !== null);
         if (serializedChildren.length > 0) {
           base.children = serializedChildren;

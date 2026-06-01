@@ -69,13 +69,24 @@
 	var jszip_minExports = requireJszip_min();
 	var JSZip = /*@__PURE__*/getDefaultExportFromCjs(jszip_minExports);
 
+	const TYPOGRAPHY_MARGIN_X = 51;
 	function isTypographySlotName(name) {
 	    return /_Title$/i.test(name) || /_Description$/i.test(name) || /_SubTitle$/i.test(name);
 	}
-	function horizontalOffsetFromFrame(node, frame) {
-	    return node.absoluteTransform[0][2] - frame.absoluteTransform[0][2];
+	function typographyXRelativeToParent(node, frame, margin) {
+	    const frameLeft = frame.absoluteTransform[0][2];
+	    const targetAbsX = frameLeft + margin;
+	    const parent = node.parent;
+	    if (!parent || parent === frame) {
+	        return margin;
+	    }
+	    const parentLeft = parent.absoluteTransform[0][2];
+	    return targetAbsX - parentLeft;
 	}
-	function paintToFillExport(p, imageMap) {
+	function isBackgroundImageNode(n) {
+	    return /_BackgroundImage$/i.test(n.name);
+	}
+	function paintToFillExport(p, imageMap, layerRenderMap, nodeId) {
 	    if (!p)
 	        return null;
 	    if (p.type === 'SOLID') {
@@ -90,13 +101,19 @@
 	        };
 	    }
 	    if (p.type === 'IMAGE') {
-	        const mapped = imageMap === null || imageMap === void 0 ? void 0 : imageMap.get(p.imageHash);
-	        return {
+	        const layerFile = nodeId ? layerRenderMap === null || layerRenderMap === void 0 ? void 0 : layerRenderMap.get(nodeId) : undefined;
+	        const mapped = layerFile !== null && layerFile !== void 0 ? layerFile : imageMap === null || imageMap === void 0 ? void 0 : imageMap.get(p.imageHash);
+	        const fill = {
 	            type: 'IMAGE',
 	            imageHash: p.imageHash,
 	            file: mapped !== null && mapped !== void 0 ? mapped : undefined,
-	            scaleMode: p.scaleMode
+	            scaleMode: p.scaleMode,
+	            opacity: typeof p.opacity === 'number' ? p.opacity : 1
 	        };
+	        if (p.imageTransform) {
+	            fill.imageTransform = p.imageTransform;
+	        }
+	        return fill;
 	    }
 	    if (p.type === 'GRADIENT_LINEAR' ||
 	        p.type === 'GRADIENT_RADIAL' ||
@@ -116,7 +133,7 @@
 	function fillsKey(fills) {
 	    return JSON.stringify(fills);
 	}
-	function serializeNode(node, options, imageMap, svgMap) {
+	function serializeNode(node, options, imageMap, svgMap, layerRenderMap) {
 	    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 	    if (!node.visible && !options.includeHidden)
 	        return null;
@@ -149,7 +166,8 @@
 	                type: 'IMAGE',
 	                imageHash: `svg_export_${node.id}`,
 	                file: entry.fileName,
-	                scaleMode: 'FILL'
+	                scaleMode: 'FILL',
+	                opacity: 1
 	            }
 	        ];
 	        return out;
@@ -226,7 +244,7 @@
 	            if (fills && Array.isArray(fills) && fills.length > 0) {
 	                base.fills = fills
 	                    .filter((f) => f && f.visible !== false)
-	                    .map((f) => paintToFillExport(f, imageMap));
+	                    .map((f) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
 	            }
 	        }
 	        catch (e) {
@@ -342,7 +360,7 @@
 	                    if (baseFillsRaw && baseFillsRaw !== figma.mixed && Array.isArray(baseFillsRaw)) {
 	                        const baseFillsExp = baseFillsRaw
 	                            .filter((f) => f && f.visible !== false)
-	                            .map((f) => paintToFillExport(f, imageMap));
+	                            .map((f) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
 	                        baseFillsKey = fillsKey(baseFillsExp);
 	                    }
 	                }
@@ -354,7 +372,7 @@
 	                for (const seg of segments) {
 	                    const segFillsExp = (seg.fills || [])
 	                        .filter((f) => f && f.visible !== false)
-	                        .map((f) => paintToFillExport(f, imageMap));
+	                        .map((f) => paintToFillExport(f, imageMap, layerRenderMap, node.id));
 	                    const segKey = fillsKey(segFillsExp);
 	                    let id = 0;
 	                    if (baseFillsKey !== null && segKey === baseFillsKey) {
@@ -396,13 +414,13 @@
 	            catch (e) {
 	                // ignore
 	            }
-	            // Typography slots: exported layout width matches full-bleed text column:
-	            // width = frameWidth − 2×left, where left is distance from the export frame's left edge.
+	            // Typography slots: fixed content column (51px margins on each side of the frame).
 	            const typo = options.typographyContext;
 	            if (typo && isTypographySlotName(node.name) && typeof base.width === 'number') {
-	                const left = horizontalOffsetFromFrame(node, typo.frameNode);
-	                const w = Math.round(typo.frameWidth - 2 * left);
-	                base.width = Math.max(0, w);
+	                base.width = Math.max(0, Math.round(typo.frameWidth - 2 * TYPOGRAPHY_MARGIN_X));
+	                if ('x' in node) {
+	                    base.x = typographyXRelativeToParent(node, typo.frameNode, TYPOGRAPHY_MARGIN_X);
+	                }
 	            }
 	        }
 	        catch (e) {
@@ -439,7 +457,7 @@
 	            const children = node.children;
 	            if (children && Array.isArray(children)) {
 	                const serializedChildren = children
-	                    .map((c) => serializeNode(c, options, imageMap, svgMap))
+	                    .map((c) => serializeNode(c, options, imageMap, svgMap, layerRenderMap))
 	                    .filter((c) => c !== null);
 	                if (serializedChildren.length > 0) {
 	                    base.children = serializedChildren;
@@ -1103,6 +1121,7 @@ const $ = (id) => document.getElementById(id);
 	    }
 	};
 	async function runExport(options) {
+	    var _a;
 	    console.log('runExport: Starting with options:', options);
 	    const selection = figma.currentPage.selection;
 	    console.log('runExport: Selection count:', (selection === null || selection === void 0 ? void 0 : selection.length) || 0);
@@ -1135,8 +1154,10 @@ const $ = (id) => document.getElementById(id);
 	    });
 	    // Collect image hashes and SVG-pattern nodes during a single tree walk.
 	    const imageMap = new Map();
+	    const layerRenderMap = new Map();
 	    const svgMap = new Map();
 	    let imageCounter = 0;
+	    let bgImageCounter = 0;
 	    let svgCounter = 0;
 	    function isPatternNode(n) {
 	        return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
@@ -1146,6 +1167,19 @@ const $ = (id) => document.getElementById(id);
 	            .toLowerCase()
 	            .replace(/[^a-z0-9]+/g, '_')
 	            .replace(/^_+|_+$/g, '') || 'pattern';
+	    }
+	    function hasVisibleImageFill(n) {
+	        try {
+	            if (!('fills' in n))
+	                return false;
+	            const fills = n.fills;
+	            if (!fills || !Array.isArray(fills))
+	                return false;
+	            return fills.some((f) => f && f.type === 'IMAGE' && f.imageHash && f.visible !== false);
+	        }
+	        catch (_a) {
+	            return false;
+	        }
 	    }
 	    function scanNode(node) {
 	        if (cancelExport)
@@ -1160,21 +1194,29 @@ const $ = (id) => document.getElementById(id);
 	            }
 	            return;
 	        }
-	        try {
-	            if ('fills' in node && node.fills) {
-	                const fills = node.fills;
-	                for (const f of fills) {
-	                    if (f && f.type === 'IMAGE' && f.imageHash) {
-	                        if (!imageMap.has(f.imageHash)) {
-	                            imageCounter++;
-	                            imageMap.set(f.imageHash, `image_${imageCounter}.png`);
+	        if (isBackgroundImageNode(node) && hasVisibleImageFill(node)) {
+	            if (!layerRenderMap.has(node.id)) {
+	                bgImageCounter++;
+	                layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+	            }
+	        }
+	        else {
+	            try {
+	                if ('fills' in node && node.fills) {
+	                    const fills = node.fills;
+	                    for (const f of fills) {
+	                        if (f && f.type === 'IMAGE' && f.imageHash) {
+	                            if (!imageMap.has(f.imageHash)) {
+	                                imageCounter++;
+	                                imageMap.set(f.imageHash, `image_${imageCounter}.png`);
+	                            }
 	                        }
 	                    }
 	                }
 	            }
-	        }
-	        catch (e) {
-	            // Benign error
+	            catch (e) {
+	                // Benign error
+	            }
 	        }
 	        if ('children' in node) {
 	            const children = node.children;
@@ -1202,7 +1244,7 @@ const $ = (id) => document.getElementById(id);
 	                frameWidth: node.width,
 	                frameNode: node
 	            }
-	        }, imageMap, svgMap);
+	        }, imageMap, svgMap, layerRenderMap);
 	        if (serialized) {
 	            frames.push(serialized);
 	        }
@@ -1216,7 +1258,7 @@ const $ = (id) => document.getElementById(id);
 	    });
 	    // Extract image bytes
 	    const imageBytesMap = {};
-	    const totalImages = imageMap.size;
+	    const totalImages = imageMap.size + layerRenderMap.size;
 	    let processedImages = 0;
 	    for (const [hash, fname] of imageMap) {
 	        if (cancelExport)
@@ -1249,6 +1291,60 @@ const $ = (id) => document.getElementById(id);
 	        }
 	        catch (e) {
 	            console.error(`Error extracting image ${fname}:`, e);
+	            figma.ui.postMessage({
+	                type: 'export-progress',
+	                stage: `error extracting ${fname}`,
+	                percent: undefined
+	            });
+	        }
+	    }
+	    for (const [nodeId, fname] of layerRenderMap) {
+	        if (cancelExport)
+	            return;
+	        try {
+	            const bgNode = figma.getNodeById(nodeId);
+	            if (!bgNode) {
+	                console.warn(`Background image node not found for id: ${nodeId}`);
+	                continue;
+	            }
+	            const bytes = await bgNode.exportAsync({
+	                format: 'PNG',
+	                constraint: { type: 'SCALE', value: 1 }
+	            });
+	            imageBytesMap[fname] = bytes;
+	            if (options.embedImages) {
+	                const dataUri = `data:image/png;base64,${toBase64(bytes)}`;
+	                let imageHash;
+	                try {
+	                    if ('fills' in bgNode) {
+	                        const fills = bgNode.fills;
+	                        if (fills && Array.isArray(fills)) {
+	                            const imgFill = fills.find((f) => f.type === 'IMAGE' && !!f.imageHash);
+	                            imageHash = (_a = imgFill === null || imgFill === void 0 ? void 0 : imgFill.imageHash) !== null && _a !== void 0 ? _a : undefined;
+	                        }
+	                    }
+	                }
+	                catch (_b) {
+	                    // ignore
+	                }
+	                if (imageHash) {
+	                    for (const frame of frames) {
+	                        updateFillDataUri(frame, imageHash, dataUri);
+	                    }
+	                }
+	            }
+	            processedImages++;
+	            if (totalImages > 0) {
+	                const percent = 30 + Math.round((processedImages / totalImages) * 20);
+	                figma.ui.postMessage({
+	                    type: 'export-progress',
+	                    stage: 'extracting-images',
+	                    percent
+	                });
+	            }
+	        }
+	        catch (e) {
+	            console.error(`Error exporting background image ${fname}:`, e);
 	            figma.ui.postMessage({
 	                type: 'export-progress',
 	                stage: `error extracting ${fname}`,
