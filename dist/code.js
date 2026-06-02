@@ -86,6 +86,40 @@
 	function isBackgroundImageNode(n) {
 	    return /_BackgroundImage$/i.test(n.name);
 	}
+	function visualPositionRelativeToParent(node) {
+	    const bbox = node.absoluteBoundingBox;
+	    if (!bbox) {
+	        return { x: node.x, y: node.y };
+	    }
+	    const parent = node.parent;
+	    if (parent && 'absoluteBoundingBox' in parent && parent.absoluteBoundingBox) {
+	        const pb = parent.absoluteBoundingBox;
+	        return { x: bbox.x - pb.x, y: bbox.y - pb.y };
+	    }
+	    return { x: bbox.x, y: bbox.y };
+	}
+	/** GROUP/FRAME with "pattern" in the name — exported as SVG (subtree flattened). */
+	function isSvgPatternNode(n) {
+	    return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
+	}
+	/** RECTANGLE with "pattern" in the name (e.g. image 25_BackgroundPattern) — raster layer export. */
+	function isRasterPatternNode(n) {
+	    return n.type === 'RECTANGLE' && /pattern/i.test(n.name);
+	}
+	function isPatternExportNode(n) {
+	    return isSvgPatternNode(n) || isRasterPatternNode(n);
+	}
+	function applyVisualLayoutExport(node, target) {
+	    const visual = visualPositionRelativeToParent(node);
+	    target.x = Math.round(visual.x);
+	    target.y = Math.round(visual.y);
+	    if (typeof target.rotation === 'number' && target.rotation === -180) {
+	        target.rotation = 180;
+	    }
+	}
+	function usesVisualLayoutExport(node) {
+	    return isBackgroundImageNode(node) || isPatternExportNode(node);
+	}
 	function paintToFillExport(p, imageMap, layerRenderMap, nodeId) {
 	    if (!p)
 	        return null;
@@ -161,6 +195,9 @@
 	            out.opacity = node.opacity;
 	        if ('blendMode' in node)
 	            out.blendMode = node.blendMode;
+	        if (usesVisualLayoutExport(node)) {
+	            applyVisualLayoutExport(node, out);
+	        }
 	        out.fills = [
 	            {
 	                type: 'IMAGE',
@@ -195,6 +232,10 @@
 	    }
 	    if ('blendMode' in node) {
 	        base.blendMode = node.blendMode;
+	    }
+	    // Background images and patterns: visual top-left (matches Figma UI) and UI rotation sign.
+	    if (usesVisualLayoutExport(node)) {
+	        applyVisualLayoutExport(node, base);
 	    }
 	    // Constraints
 	    if ('constraints' in node && node.constraints) {
@@ -1158,10 +1199,8 @@ const $ = (id) => document.getElementById(id);
 	    const svgMap = new Map();
 	    let imageCounter = 0;
 	    let bgImageCounter = 0;
+	    let patternRasterCounter = 0;
 	    let svgCounter = 0;
-	    function isPatternNode(n) {
-	        return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
-	    }
 	    function slugifyName(name) {
 	        return name
 	            .toLowerCase()
@@ -1186,7 +1225,7 @@ const $ = (id) => document.getElementById(id);
 	            return;
 	        // Pattern nodes are exported as SVG; do not descend (their descendants are
 	        // absorbed into the SVG file and must not be serialized or PNG-extracted).
-	        if (isPatternNode(node)) {
+	        if (isSvgPatternNode(node)) {
 	            if (!svgMap.has(node.id)) {
 	                svgCounter++;
 	                const slug = slugifyName(node.name);
@@ -1194,10 +1233,17 @@ const $ = (id) => document.getElementById(id);
 	            }
 	            return;
 	        }
-	        if (isBackgroundImageNode(node) && hasVisibleImageFill(node)) {
+	        if ((isBackgroundImageNode(node) || isRasterPatternNode(node)) &&
+	            hasVisibleImageFill(node)) {
 	            if (!layerRenderMap.has(node.id)) {
-	                bgImageCounter++;
-	                layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+	                if (isRasterPatternNode(node)) {
+	                    patternRasterCounter++;
+	                    layerRenderMap.set(node.id, `image_pattern_${patternRasterCounter}.png`);
+	                }
+	                else {
+	                    bgImageCounter++;
+	                    layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+	                }
 	            }
 	        }
 	        else {

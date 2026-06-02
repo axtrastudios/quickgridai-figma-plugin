@@ -1,7 +1,13 @@
 // src/code.ts
 // @ts-ignore - JSZip doesn't have proper ES module exports
 import JSZip from 'jszip';
-import { serializeNode, SvgMapEntry, isBackgroundImageNode } from './lib/serializer';
+import {
+  serializeNode,
+  SvgMapEntry,
+  isBackgroundImageNode,
+  isRasterPatternNode,
+  isSvgPatternNode
+} from './lib/serializer';
 import {
   ExportOptions,
   UIToMainMessage,
@@ -133,11 +139,8 @@ async function runExport(options: ExportOptions) {
   const svgMap = new Map<string, SvgMapEntry>();
   let imageCounter = 0;
   let bgImageCounter = 0;
+  let patternRasterCounter = 0;
   let svgCounter = 0;
-
-  function isPatternNode(n: SceneNode): boolean {
-    return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
-  }
 
   function slugifyName(name: string): string {
     return name
@@ -163,7 +166,7 @@ async function runExport(options: ExportOptions) {
     if (cancelExport) return;
     // Pattern nodes are exported as SVG; do not descend (their descendants are
     // absorbed into the SVG file and must not be serialized or PNG-extracted).
-    if (isPatternNode(node)) {
+    if (isSvgPatternNode(node)) {
       if (!svgMap.has(node.id)) {
         svgCounter++;
         const slug = slugifyName(node.name);
@@ -171,10 +174,18 @@ async function runExport(options: ExportOptions) {
       }
       return;
     }
-    if (isBackgroundImageNode(node) && hasVisibleImageFill(node)) {
+    if (
+      (isBackgroundImageNode(node) || isRasterPatternNode(node)) &&
+      hasVisibleImageFill(node)
+    ) {
       if (!layerRenderMap.has(node.id)) {
-        bgImageCounter++;
-        layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+        if (isRasterPatternNode(node)) {
+          patternRasterCounter++;
+          layerRenderMap.set(node.id, `image_pattern_${patternRasterCounter}.png`);
+        } else {
+          bgImageCounter++;
+          layerRenderMap.set(node.id, `image_bg_${bgImageCounter}.png`);
+        }
       }
     } else {
       try {

@@ -37,6 +37,49 @@ export function isBackgroundImageNode(n: SceneNode): boolean {
   return /_BackgroundImage$/i.test(n.name);
 }
 
+function visualPositionRelativeToParent(node: SceneNode): { x: number; y: number } {
+  const bbox = node.absoluteBoundingBox;
+  if (!bbox) {
+    return { x: (node as LayoutMixin).x, y: (node as LayoutMixin).y };
+  }
+  const parent = node.parent;
+  if (parent && 'absoluteBoundingBox' in parent && parent.absoluteBoundingBox) {
+    const pb = parent.absoluteBoundingBox;
+    return { x: bbox.x - pb.x, y: bbox.y - pb.y };
+  }
+  return { x: bbox.x, y: bbox.y };
+}
+
+/** GROUP/FRAME with "pattern" in the name — exported as SVG (subtree flattened). */
+export function isSvgPatternNode(n: SceneNode): boolean {
+  return (n.type === 'GROUP' || n.type === 'FRAME') && /pattern/i.test(n.name);
+}
+
+/** RECTANGLE with "pattern" in the name (e.g. image 25_BackgroundPattern) — raster layer export. */
+export function isRasterPatternNode(n: SceneNode): boolean {
+  return n.type === 'RECTANGLE' && /pattern/i.test(n.name);
+}
+
+export function isPatternExportNode(n: SceneNode): boolean {
+  return isSvgPatternNode(n) || isRasterPatternNode(n);
+}
+
+function applyVisualLayoutExport(
+  node: SceneNode,
+  target: { x?: number; y?: number; rotation?: number }
+): void {
+  const visual = visualPositionRelativeToParent(node);
+  target.x = Math.round(visual.x);
+  target.y = Math.round(visual.y);
+  if (typeof target.rotation === 'number' && target.rotation === -180) {
+    target.rotation = 180;
+  }
+}
+
+function usesVisualLayoutExport(node: SceneNode): boolean {
+  return isBackgroundImageNode(node) || isPatternExportNode(node);
+}
+
 function paintToFillExport(
   p: any,
   imageMap?: Map<string, string>,
@@ -122,6 +165,9 @@ export function serializeNode(
     if ('rotation' in node) out.rotation = (node as any).rotation;
     if ('opacity' in node) out.opacity = (node as any).opacity;
     if ('blendMode' in node) out.blendMode = (node as any).blendMode;
+    if (usesVisualLayoutExport(node)) {
+      applyVisualLayoutExport(node, out);
+    }
     out.fills = [
       {
         type: 'IMAGE',
@@ -158,6 +204,11 @@ export function serializeNode(
   }
   if ('blendMode' in node) {
     base.blendMode = (node as any).blendMode;
+  }
+
+  // Background images and patterns: visual top-left (matches Figma UI) and UI rotation sign.
+  if (usesVisualLayoutExport(node)) {
+    applyVisualLayoutExport(node, base);
   }
 
   // Constraints

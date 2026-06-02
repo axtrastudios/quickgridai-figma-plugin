@@ -2,7 +2,7 @@
   "canvas": { "width": 1080, "height": 1350 },
   "frames": [
     {
-      "id": "2286:2",
+      "id": "2403:132",
       "name": "1",
       "type": "FRAME",
       "visible": true,
@@ -15,14 +15,11 @@
       "blendMode": "PASS_THROUGH",
       "constraints": { "horizontal": "MIN", "vertical": "MIN" },
       "cornerRadius": 0,
-      "fills": [
-        { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
-      ],
       "strokes": [],
       "children": [
         {
-          "id": "2286:3",
-          "name": "star 1_BackgroundImage",
+          "id": "2403:133",
+          "name": "b0210669be120b2c1b2d2cc4f25bfcbd_BackgroundImage",
           "type": "RECTANGLE",
           "visible": true,
           "x": 0,
@@ -37,143 +34,115 @@
           "fills": [
             {
               "type": "IMAGE",
-              "imageHash": "3ab7cbba217a6a86b1b2b30adb7b07c45fdd5965",
-              "file": "image_1.png",
-              "scaleMode": "FILL"
+              "imageHash": "67fbccaed69c76c82734503ca33faebbbc3e2abf",
+              "file": "image_bg_1.png",
+              "scaleMode": "FILL",
+              "opacity": 1,
+              "imageTransform": [
+                [1, 0, 0],
+                [0, 1, 0]
+              ]
             }
           ],
           "strokes": []
         },
         {
-          "id": "2286:4",
-          "name": "image 33_Logo",
+          "id": "2403:134",
+          "name": "image 25_BackgroundPattern",
           "type": "RECTANGLE",
           "visible": true,
-          "x": 49,
-          "y": 38,
-          "width": 131,
-          "height": 131,
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1350,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
           "constraints": { "horizontal": "MIN", "vertical": "MIN" },
-          "cornerRadius": 539,
-          "cornerRadii": {
-            "topLeft": 539,
-            "topRight": 539,
-            "bottomLeft": 539,
-            "bottomRight": 539
-          },
+          "cornerRadius": 0,
           "fills": [
             {
               "type": "IMAGE",
-              "imageHash": "db60437018637a9ca86adac56ac2e325f29fb0d5",
-              "file": "image_2.png",
-              "scaleMode": "FILL"
+              "imageHash": "0e5b1645b5a6e0a253f53244a05e658980a2a444",
+              "file": "image_1.png",
+              "scaleMode": "CROP",
+              "opacity": 1,
+              "imageTransform": [
+                [2.596153974533081, 0, -1.4495192766189575],
+                [0, 3.245192527770996, -1.925480842590332]
+              ]
             }
           ],
-          "strokes": [
+          "strokes": []
+        },
+        {
+          "id": "2403:135",
+          "name": "Technology is moving faster than ever._SubTitle",
+          "type": "TEXT",
+          "visible": true,
+          "x": 51,
+          "y": 130,
+          "width": 978,
+          "height": 24,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
             {
               "type": "SOLID",
               "color": {
-                "r": 1,
-                "g": 0.9524711966514587,
-                "b": 0.9524711966514587,
+                "r": 0.8313725590705872,
+                "g": 0.8549019694328308,
+                "b": 1,
                 "a": 1
-              },
-              "strokeWeight": 5
+              }
             }
-          ]
-        },
-        {
-          "id": "2286:5",
-          "name": "More posts don’t mean more growth_Title",
-          "type": "TEXT",
-          "visible": true,
-          "x": 49,
-          "y": 262,
-          "width": 652,
-          "height": 498,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
-          "strokes": [],
-          "characters": "Steel\nSpeed Domination",
-          "textStyle": {
-            "fontSize": 226,
-            "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 163 },
-            "letterSpacing": { "unit": "PIXELS", "value": -4 },
-            "fontName": {
-              "family": "Lokanova Italic Demo",
-              "style": "Extra Bold"
-            },
-            "textCase": "UPPER"
-          },
-          "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
           ],
-          "styleOverrideTable": {
-            "1": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.929411768913269,
-                    "g": 0.9333333373069763,
-                    "b": 0.929411768913269,
-                    "a": 1
-                  }
-                }
-              ]
-            },
-            "2": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
-              ]
-            }
+          "strokes": [],
+          "characters": "Technology is moving faster than ever.",
+          "textStyle": {
+            "fontSize": 31,
+            "textAlignHorizontal": "LEFT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 24 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Araboto-Light", "style": "Regular" },
+            "textCase": "ORIGINAL"
           },
-          "figmaWidth": 654
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 521
         },
         {
-          "id": "2286:6",
-          "name": "More posts don’t mean more growth_SubTitle",
+          "id": "2403:136",
+          "name": "AI tools that actually make difference_Title",
           "type": "TEXT",
           "visible": true,
-          "x": 49,
-          "y": 827,
-          "width": 653,
-          "height": 156,
+          "x": 51,
+          "y": 210,
+          "width": 978,
+          "height": 299,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
           "strokes": [],
-          "characters": "9-Foot Combat Gladiators\nEnter the arena.\nOnly one city leaves victorious.",
+          "characters": "AI tools\nthat actually\nmake difference",
           "textStyle": {
-            "fontSize": 40,
+            "fontSize": 80,
             "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 52 },
-            "letterSpacing": { "unit": "PIXELS", "value": -1 },
-            "fontName": { "family": "Araboto-Normal", "style": "Regular" },
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "AUTO" },
+            "letterSpacing": { "unit": "PERCENT", "value": -5 },
+            "fontName": { "family": "Mirano Extended", "style": "SemiBold" },
             "textCase": "UPPER"
           },
           "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
           ],
           "styleOverrideTable": {
             "1": {
@@ -186,264 +155,228 @@
                 {
                   "type": "SOLID",
                   "color": {
-                    "r": 0.9990211129188538,
-                    "g": 0.006018200423568487,
-                    "b": 0,
+                    "r": 0.8352941274642944,
+                    "g": 0.8352941274642944,
+                    "b": 0.8588235378265381,
                     "a": 1
                   }
                 }
               ]
             }
           },
-          "figmaWidth": 647
+          "figmaWidth": 775
         },
         {
-          "id": "2286:7",
-          "name": "More posts don’t mean more growth_Description",
+          "id": "2403:137",
+          "name": "Not every AI tool matters. The right ones change how work happens._SubTitle",
           "type": "TEXT",
           "visible": true,
-          "x": 49,
-          "y": 1050,
-          "width": 550,
-          "height": 56,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
-          "strokes": [],
-          "characters": "DETROIT   VS  ATLANTA",
-          "textStyle": {
-            "fontSize": 100,
-            "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 56 },
-            "letterSpacing": { "unit": "PIXELS", "value": 0 },
-            "fontName": { "family": "Lokanova Italic Demo", "style": "Bold" },
-            "textCase": "UPPER"
-          },
-          "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1
-          ],
-          "styleOverrideTable": {
-            "1": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.9725490212440491,
-                    "g": 0.9647058844566345,
-                    "b": 0.9607843160629272,
-                    "a": 1
-                  }
-                }
-              ]
-            },
-            "2": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
-              ]
-            }
-          },
-          "figmaWidth": 546
-        },
-        {
-          "id": "2286:8",
-          "name": "#EditorialLook_BrandHashTag",
-          "type": "TEXT",
-          "visible": true,
-          "x": 871,
-          "y": 1264,
-          "width": 129,
-          "height": 18,
+          "x": 51,
+          "y": 560,
+          "width": 978,
+          "height": 153,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
           "constraints": { "horizontal": "MIN", "vertical": "MIN" },
           "fills": [
-            { "type": "SOLID", "color": { "r": 1, "g": 0, "b": 0, "a": 1 } }
-          ],
-          "strokes": [],
-          "characters": "#ICLARENA",
-          "textStyle": {
-            "fontSize": 25,
-            "textAlignHorizontal": "RIGHT",
-            "textAlignVertical": "TOP",
-            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
-            "letterSpacing": { "unit": "PIXELS", "value": 0 },
-            "fontName": { "family": "Articulat CF", "style": "Regular" },
-            "textCase": "ORIGINAL"
-          },
-          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0, 0, 0],
-          "figmaWidth": 127
-        }
-      ],
-      "exportPreviewFile": "previews/frame_2286_2.png"
-    },
-    {
-      "id": "2286:9",
-      "name": "3",
-      "type": "FRAME",
-      "visible": true,
-      "x": 2256,
-      "y": 0,
-      "width": 1080,
-      "height": 1350,
-      "rotation": 0,
-      "opacity": 1,
-      "blendMode": "PASS_THROUGH",
-      "constraints": { "horizontal": "MIN", "vertical": "MIN" },
-      "cornerRadius": 0,
-      "fills": [
-        { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
-      ],
-      "strokes": [],
-      "children": [
-        {
-          "id": "2286:10",
-          "name": "Starrr 1_BackgroundImage",
-          "type": "RECTANGLE",
-          "visible": true,
-          "x": 0,
-          "y": 0,
-          "width": 1080,
-          "height": 1350,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "CENTER" },
-          "cornerRadius": 0,
-          "fills": [
             {
-              "type": "IMAGE",
-              "imageHash": "ec69b563c68b13d41890ffc8b9cbcaceafa0f6d8",
-              "file": "image_3.png",
-              "scaleMode": "FILL"
+              "type": "SOLID",
+              "color": {
+                "r": 0.8352941274642944,
+                "g": 0.8352941274642944,
+                "b": 0.8588235378265381,
+                "a": 1
+              }
             }
           ],
-          "strokes": []
-        },
-        {
-          "id": "2286:11",
-          "name": "More posts don’t mean more growth_Title",
-          "type": "TEXT",
-          "visible": true,
-          "x": 49,
-          "y": 458,
-          "width": 926,
-          "height": 332,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
           "strokes": [],
-          "characters": "This isn’t cgi\nthis is combat",
+          "characters": "Not every AI tool matters. The right ones change how work happens.",
           "textStyle": {
-            "fontSize": 196,
+            "fontSize": 35,
             "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 170 },
-            "letterSpacing": { "unit": "PIXELS", "value": -4 },
-            "fontName": {
-              "family": "Lokanova Italic Demo",
-              "style": "Extra Bold"
-            },
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 51 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Araboto-Light", "style": "Regular" },
             "textCase": "UPPER"
           },
           "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
           ],
-          "styleOverrideTable": {
-            "1": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.929411768913269,
-                    "g": 0.9333333373069763,
-                    "b": 0.929411768913269,
-                    "a": 1
-                  }
-                }
-              ]
-            },
-            "2": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
-              ]
-            }
-          },
-          "figmaWidth": 930
+          "figmaWidth": 562
         },
         {
-          "id": "2286:12",
-          "name": "More posts don’t mean more growth_SubTitle",
+          "id": "2403:138",
+          "name": "Swipe to discover what matters →_SubTitle",
           "type": "TEXT",
           "visible": true,
-          "x": 35,
-          "y": 839,
-          "width": 627,
-          "height": 208,
+          "x": 51,
+          "y": 802,
+          "width": 978,
+          "height": 35,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
           "fills": [
             { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
           ],
           "strokes": [],
-          "characters": "Mental Crashes\ncrowds erupt.\nthe future of sports entertainment has arrived.",
+          "characters": "Swipe to discover what matters  →",
           "textStyle": {
-            "fontSize": 40,
-            "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 52 },
-            "letterSpacing": { "unit": "PIXELS", "value": -1 },
-            "fontName": { "family": "Araboto-Normal", "style": "Regular" },
-            "textCase": "UPPER"
+            "fontSize": 29,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "AUTO" },
+            "letterSpacing": { "unit": "PERCENT", "value": 0 },
+            "fontName": { "family": "Neue Montreal", "style": "Medium" },
+            "textCase": "ORIGINAL"
           },
           "characterStyleOverrides": [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0
           ],
-          "figmaWidth": 597
+          "figmaWidth": 426
         },
         {
-          "id": "2286:13",
-          "name": "#EditorialLook_BrandHashTag",
+          "id": "2403:139",
+          "name": "Woman_ProfileImg",
+          "type": "ELLIPSE",
+          "visible": true,
+          "x": 80,
+          "y": 1244,
+          "width": 58,
+          "height": 58,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "cornerRadius": 0,
+          "fills": [
+            {
+              "type": "IMAGE",
+              "imageHash": "e2d8e9c4f6a42ac67549d85741760ea184283159",
+              "file": "image_2.png",
+              "scaleMode": "FILL",
+              "opacity": 1,
+              "imageTransform": [
+                [1, 0, 0],
+                [0, 0.66650390625, 0.166748046875]
+              ]
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.125490203499794,
+                "g": 0.16470588743686676,
+                "b": 0.24313725531101227,
+                "a": 1
+              },
+              "strokeWeight": 2
+            }
+          ]
+        },
+        {
+          "id": "2403:140",
+          "name": "Fernando_BrandName",
           "type": "TEXT",
           "visible": true,
-          "x": 886,
-          "y": 1264,
-          "width": 114,
+          "x": 151,
+          "y": 1253,
+          "width": 167,
           "height": 18,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
           "constraints": { "horizontal": "MIN", "vertical": "MIN" },
           "fills": [
-            { "type": "SOLID", "color": { "r": 1, "g": 0, "b": 0, "a": 1 } }
+            { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
           ],
           "strokes": [],
-          "characters": "#FOLLOW",
+          "characters": "Lorem Ips",
+          "textStyle": {
+            "fontSize": 25,
+            "textAlignHorizontal": "LEFT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Articulat CF", "style": "Demi Bold" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "figmaWidth": 111
+        },
+        {
+          "id": "2403:141",
+          "name": "Fernando_BrandSlogan",
+          "type": "TEXT",
+          "visible": true,
+          "x": 151,
+          "y": 1282,
+          "width": 167,
+          "height": 11,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.9039095640182495,
+                "g": 0.9142665863037109,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ],
+          "strokes": [],
+          "characters": "Founder, QuickGrid.ai",
+          "textStyle": {
+            "fontSize": 16,
+            "textAlignHorizontal": "LEFT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
+            "letterSpacing": { "unit": "PIXELS", "value": -0.5 },
+            "fontName": { "family": "Articulat CF", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 139
+        },
+        {
+          "id": "2403:142",
+          "name": "#EditorialLook_BrandHashTag",
+          "type": "TEXT",
+          "visible": true,
+          "x": 845,
+          "y": 1264,
+          "width": 155,
+          "height": 18,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.125490203499794,
+                "g": 0.16470588743686676,
+                "b": 0.24313725531101227,
+                "a": 1
+              }
+            }
+          ],
+          "strokes": [],
+          "characters": "#BuildInPublic",
           "textStyle": {
             "fontSize": 25,
             "textAlignHorizontal": "RIGHT",
@@ -453,116 +386,18 @@
             "fontName": { "family": "Articulat CF", "style": "Regular" },
             "textCase": "ORIGINAL"
           },
-          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0],
-          "figmaWidth": 112
-        },
-        {
-          "id": "2286:14",
-          "name": "More posts don’t mean more growth_Description",
-          "type": "TEXT",
-          "visible": true,
-          "x": 52,
-          "y": 1159,
-          "width": 461,
-          "height": 56,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
-          "strokes": [],
-          "characters": "Get tickets now",
-          "textStyle": {
-            "fontSize": 100,
-            "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 56 },
-            "letterSpacing": { "unit": "PIXELS", "value": 0 },
-            "fontName": { "family": "Lokanova Italic Demo", "style": "Bold" },
-            "textCase": "UPPER"
-          },
-          "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2
-          ],
-          "styleOverrideTable": {
-            "1": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.9725490212440491,
-                    "g": 0.9647058844566345,
-                    "b": 0.9607843160629272,
-                    "a": 1
-                  }
-                }
-              ]
-            },
-            "2": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
-              ]
-            }
-          },
-          "figmaWidth": 463
-        },
-        {
-          "id": "2286:15",
-          "name": "image 33_Logo",
-          "type": "RECTANGLE",
-          "visible": true,
-          "x": 49,
-          "y": 38,
-          "width": 131,
-          "height": 131,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
-          "cornerRadius": 539,
-          "cornerRadii": {
-            "topLeft": 539,
-            "topRight": 539,
-            "bottomLeft": 539,
-            "bottomRight": 539
-          },
-          "fills": [
-            {
-              "type": "IMAGE",
-              "imageHash": "db60437018637a9ca86adac56ac2e325f29fb0d5",
-              "file": "image_2.png",
-              "scaleMode": "FILL"
-            }
-          ],
-          "strokes": [
-            {
-              "type": "SOLID",
-              "color": {
-                "r": 1,
-                "g": 0.9524711966514587,
-                "b": 0.9524711966514587,
-                "a": 1
-              },
-              "strokeWeight": 5
-            }
-          ]
+          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "figmaWidth": 152
         }
       ],
-      "exportPreviewFile": "previews/frame_2286_9.png"
+      "exportPreviewFile": "previews/frame_2403_132.png"
     },
     {
-      "id": "2286:16",
+      "id": "2403:143",
       "name": "2",
       "type": "FRAME",
       "visible": true,
-      "x": 1128,
+      "x": 1104,
       "y": 0,
       "width": 1080,
       "height": 1350,
@@ -572,120 +407,45 @@
       "constraints": { "horizontal": "MIN", "vertical": "MIN" },
       "cornerRadius": 0,
       "fills": [
-        { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0,
+            "g": 0.01568627543747425,
+            "b": 0.23529411852359772,
+            "a": 1
+          }
+        }
       ],
       "strokes": [],
       "children": [
         {
-          "id": "2286:17",
-          "name": "Starr 1_BackgroundImage",
-          "type": "RECTANGLE",
-          "visible": true,
-          "x": 0,
-          "y": 0,
-          "width": 1080,
-          "height": 1350,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "CENTER" },
-          "cornerRadius": 0,
-          "fills": [
-            {
-              "type": "IMAGE",
-              "imageHash": "8cf41943551d4538c598891e35cb2b50a2c0ebba",
-              "file": "image_4.png",
-              "scaleMode": "FILL"
-            }
-          ],
-          "strokes": []
-        },
-        {
-          "id": "2286:18",
-          "name": "More posts don’t mean more growth_Title",
+          "id": "2403:144",
+          "name": "AI is a productivity multiplier_Title",
           "type": "TEXT",
           "visible": true,
-          "x": 300,
-          "y": 417,
-          "width": 480,
-          "height": 330,
+          "x": 51,
+          "y": 478,
+          "width": 978,
+          "height": 208,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
           "constraints": { "horizontal": "MIN", "vertical": "MIN" },
           "strokes": [],
-          "characters": "Built for\nImpact",
+          "characters": "AI is a productivity\nmultiplier",
           "textStyle": {
-            "fontSize": 190,
+            "fontSize": 86.55999755859375,
             "textAlignHorizontal": "CENTER",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 170 },
-            "letterSpacing": { "unit": "PIXELS", "value": -4 },
-            "fontName": { "family": "Lokanova Italic Demo", "style": "Bold" },
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "AUTO" },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Neue Montreal", "style": "Medium" },
             "textCase": "UPPER"
           },
           "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2
-          ],
-          "styleOverrideTable": {
-            "1": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.929411768913269,
-                    "g": 0.9333333373069763,
-                    "b": 0.929411768913269,
-                    "a": 1
-                  }
-                }
-              ]
-            },
-            "2": {
-              "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
-              ]
-            }
-          },
-          "figmaWidth": 458
-        },
-        {
-          "id": "2286:19",
-          "name": "More posts don’t mean more growth_SubTitle",
-          "type": "TEXT",
-          "visible": true,
-          "x": 324,
-          "y": 785,
-          "width": 433,
-          "height": 126,
-          "rotation": 0,
-          "opacity": 1,
-          "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
-          "strokes": [],
-          "characters": "Engineered for power.\ndesigned for destruction.\ncontrolled by elite pilots.",
-          "textStyle": {
-            "fontSize": 32,
-            "textAlignHorizontal": "CENTER",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 42 },
-            "letterSpacing": { "unit": "PIXELS", "value": -1 },
-            "fontName": { "family": "Araboto-Normal", "style": "Regular" },
-            "textCase": "UPPER"
-          },
-          "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
-            2, 2, 2, 2, 2, 2
+            1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2
           ],
           "styleOverrideTable": {
             "1": {
@@ -698,43 +458,149 @@
                 {
                   "type": "SOLID",
                   "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
+                    "r": 0.6745098233222961,
+                    "g": 0.26274511218070984,
+                    "b": 1,
                     "a": 1
                   }
                 }
               ]
             }
           },
-          "figmaWidth": 428
+          "figmaWidth": 871
         },
         {
-          "id": "2286:20",
-          "name": "More posts don’t mean more growth_Description",
+          "id": "2403:145",
+          "name": "The best tools simplify complex tasks and help creators work smarter_SubTitle",
           "type": "TEXT",
           "visible": true,
-          "x": 308,
-          "y": 1159,
-          "width": 465,
-          "height": 56,
+          "x": 51,
+          "y": 713,
+          "width": 978,
+          "height": 118,
           "rotation": 0,
           "opacity": 1,
           "blendMode": "PASS_THROUGH",
-          "constraints": { "horizontal": "CENTER", "vertical": "MIN" },
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+          ],
           "strokes": [],
-          "characters": "Enter the ARENA",
+          "characters": "The best tools simplify complex tasks and help creators work smarter.",
           "textStyle": {
-            "fontSize": 100,
-            "textAlignHorizontal": "LEFT",
-            "textAlignVertical": "BOTTOM",
-            "lineHeight": { "unit": "PIXELS", "value": 56 },
+            "fontSize": 42,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 59 },
             "letterSpacing": { "unit": "PIXELS", "value": 0 },
-            "fontName": { "family": "Lokanova Italic Demo", "style": "Bold" },
+            "fontName": { "family": "Araboto-Light", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 769
+        }
+      ],
+      "exportPreviewFile": "previews/frame_2403_143.png"
+    },
+    {
+      "id": "2403:146",
+      "name": "3",
+      "type": "FRAME",
+      "visible": true,
+      "x": 2208,
+      "y": 0,
+      "width": 1080,
+      "height": 1350,
+      "rotation": 0,
+      "opacity": 1,
+      "blendMode": "PASS_THROUGH",
+      "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+      "cornerRadius": 0,
+      "fills": [
+        {
+          "type": "SOLID",
+          "color": {
+            "r": 0,
+            "g": 0.01568627543747425,
+            "b": 0.23529411852359772,
+            "a": 1
+          }
+        }
+      ],
+      "strokes": [],
+      "children": [
+        {
+          "id": "2403:147",
+          "name": "Technology becomes powerful_SubTitle",
+          "type": "TEXT",
+          "visible": true,
+          "x": 51,
+          "y": 352,
+          "width": 978,
+          "height": 24,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.8313725590705872,
+                "g": 0.8549019694328308,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ],
+          "strokes": [],
+          "characters": "Technology becomes powerful",
+          "textStyle": {
+            "fontSize": 31,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 24 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0.08749999850988388 },
+            "fontName": { "family": "Neue Montreal", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0
+          ],
+          "figmaWidth": 404
+        },
+        {
+          "id": "2403:148",
+          "name": "when the right tools solve real problems_Title",
+          "type": "TEXT",
+          "visible": true,
+          "x": 51,
+          "y": 420,
+          "width": 978,
+          "height": 261,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "strokes": [],
+          "characters": "when the right tools\nsolve\nreal problems",
+          "textStyle": {
+            "fontSize": 72.83999633789062,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "AUTO" },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Neue Montreal", "style": "Medium" },
             "textCase": "UPPER"
           },
           "characterStyleOverrides": [
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2,
+            2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
           ],
           "styleOverrideTable": {
             "1": {
@@ -742,9 +608,9 @@
                 {
                   "type": "SOLID",
                   "color": {
-                    "r": 0.9725490212440491,
-                    "g": 0.9647058844566345,
-                    "b": 0.9607843160629272,
+                    "r": 0.6745098233222961,
+                    "g": 0.26274511218070984,
+                    "b": 1,
                     "a": 1
                   }
                 }
@@ -752,22 +618,229 @@
             },
             "2": {
               "fills": [
-                {
-                  "type": "SOLID",
-                  "color": {
-                    "r": 0.8078431487083435,
-                    "g": 0.06666667014360428,
-                    "b": 0.06666667014360428,
-                    "a": 1
-                  }
-                }
+                { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
               ]
             }
           },
-          "figmaWidth": 460
+          "figmaWidth": 847
+        },
+        {
+          "id": "2403:149",
+          "name": "These templates help share AI insights, tools, and trends clearly._SubTitle",
+          "type": "TEXT",
+          "visible": true,
+          "x": 51,
+          "y": 708,
+          "width": 978,
+          "height": 118,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+          ],
+          "strokes": [],
+          "characters": "These templates help share AI insights, tools, and trends clearly.",
+          "textStyle": {
+            "fontSize": 42,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 59 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Neue Montreal", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 791
+        },
+        {
+          "id": "2403:150",
+          "name": "Explore Technology & AI templates →__SubTitle",
+          "type": "TEXT",
+          "visible": true,
+          "x": 51,
+          "y": 917.5,
+          "width": 978,
+          "height": 36,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+          ],
+          "strokes": [],
+          "characters": "Explore Technology & AI templates  →",
+          "textStyle": {
+            "fontSize": 30,
+            "textAlignHorizontal": "CENTER",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "AUTO" },
+            "letterSpacing": { "unit": "PERCENT", "value": 0 },
+            "fontName": { "family": "Neue Montreal", "style": "Medium" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 482
+        },
+        {
+          "id": "2403:151",
+          "name": "Woman_ProfileImg",
+          "type": "ELLIPSE",
+          "visible": true,
+          "x": 80,
+          "y": 1244,
+          "width": 58,
+          "height": 58,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "cornerRadius": 0,
+          "fills": [
+            {
+              "type": "IMAGE",
+              "imageHash": "e2d8e9c4f6a42ac67549d85741760ea184283159",
+              "file": "image_2.png",
+              "scaleMode": "FILL",
+              "opacity": 1,
+              "imageTransform": [
+                [1, 0, 0],
+                [0, 0.66650390625, 0.166748046875]
+              ]
+            }
+          ],
+          "strokes": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.7529411911964417,
+                "g": 0.7529411911964417,
+                "b": 0.7529411911964417,
+                "a": 1
+              },
+              "strokeWeight": 2
+            }
+          ]
+        },
+        {
+          "id": "2403:152",
+          "name": "Fernando_BrandName",
+          "type": "TEXT",
+          "visible": true,
+          "x": 151,
+          "y": 1253,
+          "width": 167,
+          "height": 18,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            { "type": "SOLID", "color": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+          ],
+          "strokes": [],
+          "characters": "Lorem Ips",
+          "textStyle": {
+            "fontSize": 25,
+            "textAlignHorizontal": "LEFT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Articulat CF", "style": "Demi Bold" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "figmaWidth": 111
+        },
+        {
+          "id": "2403:153",
+          "name": "Fernando_BrandSlogan",
+          "type": "TEXT",
+          "visible": true,
+          "x": 151,
+          "y": 1282,
+          "width": 167,
+          "height": 11,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.9039095640182495,
+                "g": 0.9142665863037109,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ],
+          "strokes": [],
+          "characters": "Founder, QuickGrid.ai",
+          "textStyle": {
+            "fontSize": 16,
+            "textAlignHorizontal": "LEFT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
+            "letterSpacing": { "unit": "PIXELS", "value": -0.5 },
+            "fontName": { "family": "Articulat CF", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+          ],
+          "figmaWidth": 139
+        },
+        {
+          "id": "2403:154",
+          "name": "#EditorialLook_BrandHashTag",
+          "type": "TEXT",
+          "visible": true,
+          "x": 845,
+          "y": 1264,
+          "width": 155,
+          "height": 18,
+          "rotation": 0,
+          "opacity": 1,
+          "blendMode": "PASS_THROUGH",
+          "constraints": { "horizontal": "MIN", "vertical": "MIN" },
+          "fills": [
+            {
+              "type": "SOLID",
+              "color": {
+                "r": 0.9019607901573181,
+                "g": 0.9137254953384399,
+                "b": 1,
+                "a": 1
+              }
+            }
+          ],
+          "strokes": [],
+          "characters": "#BuildInPublic",
+          "textStyle": {
+            "fontSize": 25,
+            "textAlignHorizontal": "RIGHT",
+            "textAlignVertical": "TOP",
+            "lineHeight": { "unit": "PIXELS", "value": 43.70000076293945 },
+            "letterSpacing": { "unit": "PIXELS", "value": 0 },
+            "fontName": { "family": "Articulat CF", "style": "Regular" },
+            "textCase": "ORIGINAL"
+          },
+          "characterStyleOverrides": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          "figmaWidth": 152
         }
       ],
-      "exportPreviewFile": "previews/frame_2286_16.png"
+      "exportPreviewFile": "previews/frame_2403_146.png"
     }
   ]
 }
