@@ -27,6 +27,11 @@ function toBase64(uint8: Uint8Array): string {
   return btoa(binary);
 }
 
+/** Sort frames by numeric segments in name (e.g. "Frame 2" before "Frame 10"). */
+function compareFramesByName(a: SceneNode, b: SceneNode): number {
+  return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+}
+
 // Read HTML file content (will be injected at build time)
 // This will be replaced by the rollup plugin
 const __html__: string = '__HTML_PLACEHOLDER__';
@@ -124,6 +129,8 @@ async function runExport(options: ExportOptions) {
     } as MainToUIMessage);
     return;
   }
+
+  validNodes.sort(compareFramesByName);
 
   if (cancelExport) return;
 
